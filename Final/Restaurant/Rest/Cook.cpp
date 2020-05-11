@@ -5,10 +5,12 @@ Cook::Cook()
 {
 }
 
-Cook :: Cook(int id , ORD_TYPE tp , int sp )
+Cook::Cook(int id, ORD_TYPE tp, float sp)
 {
 	setID(id);  setSpeed(sp);   setType(tp); setState(false); setInjury(false);
 }
+
+
 
 Cook::~Cook()
 {
@@ -41,7 +43,7 @@ void Cook:: setSpeed(int sp)
 {
 	speed=sp;
 }
-int Cook:: getSpeed()
+float Cook:: getSpeed()
 {
 	return speed;
 }

@@ -64,7 +64,7 @@ public:
 	void set_cancellation (bool check);
 	bool get_cancellation ();
 
-
+	int getPriority();
 
 
 };

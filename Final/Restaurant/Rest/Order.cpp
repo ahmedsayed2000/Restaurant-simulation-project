@@ -105,3 +105,9 @@ bool Order::get_cancellation()
 	return isCancelled;
 }
 
+int Order::getPriority()
+{
+	Priority = this->getMoney();
+	return Priority;
+}
+

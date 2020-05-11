@@ -1,6 +1,68 @@
 #pragma once
-#include"PriorityNode.h"
 #include"..\Rest\Order.h"
+#include<iostream>
+using namespace std;
+//=================   Class Definition =====================//
+
+template < typename T>
+class PriorityNode
+{
+private:
+	T item; // A data item
+	PriorityNode<T>* next; // Pointer to next node
+	int priority;
+public:
+
+	PriorityNode()
+	{
+		next = nullptr;
+	}
+
+	PriorityNode(const T& r_Item)
+	{
+		item = r_Item;
+		next = nullptr;
+	}
+
+	PriorityNode(const T& r_Item, PriorityNode<T>* nextNodePtr)
+	{
+		item = r_Item;
+		next = nextNodePtr;
+	}
+
+	void setItem(const T& r_Item)
+	{
+		item = r_Item;
+	}
+
+	void setNext(PriorityNode<T>* nextNodePtr)
+	{
+		next = nextNodePtr;
+	}
+
+	T getItem() const
+	{
+		return item;
+	}
+
+	PriorityNode<T>* getNext() const
+	{
+		return next;
+	}
+
+	void setPriority(int pri)
+	{
+		priority = pri;
+	}
+
+	int getPriority()
+	{
+		return priority;
+	}
+
+};
+
+
 template <typename T>
 class PriorityQueue
 {
@@ -9,158 +71,344 @@ private :
 	PriorityNode<T>* backPtr;
 	PriorityNode<T>* frontPtr;
 public :
-	PriorityQueue();
-	PriorityQueue(const PriorityQueue<T>& Q);
-	bool isEmpty() const ;
-	bool enqueue(const T& newEntry,int priority);
-	bool dequeue(T& frntEntry);  
-	bool peekFront(T& frntEntry)  const;
-	T* toArray(int& count);	//returns array of T (array if items)
-	~PriorityQueue();
-};
-/////////////////////////////////////////////////////////////////////////////////////////
-template <typename T>
-PriorityQueue<T>::PriorityQueue()
-{
-	backPtr=nullptr;
-	frontPtr=nullptr;
-
-}
-///////////////////////////////////////////////////////////////////////////////////////
-template<typename T>
-inline PriorityQueue<T>::PriorityQueue(const PriorityQueue<T>& Q)
-{
-	backPtr = frontPtr = NULL;
-	PriorityNode<T>* temp = Q.frontPtr;
-	while (temp)
+	PriorityQueue()
 	{
-		this->enqueue(temp->getItem(), temp->getPriority());
-		temp = temp->getNext();
+		backPtr = nullptr;
+		frontPtr = nullptr;
+
 	}
-}
-/////////////////////////////////////////////////////////////////////////////////////////
-template <typename T>
-bool PriorityQueue<T>::isEmpty() const
+
+		PriorityQueue(const PriorityQueue<T>& Q)
+		{
+			backPtr = frontPtr = NULL;
+			PriorityNode<T>* temp = Q.frontPtr;
+			while (temp)
+			{
+				this->enqueue(temp->getItem(), temp->getPriority());
+				temp = temp->getNext();
+			}
+		}
+
+		bool isEmpty() const
+		{
+			return frontPtr == nullptr;
+		}
+
+		bool enqueue(const T& newEntry, int priority)
+		{
+			PriorityNode<T>* newNodePtr = new PriorityNode<T>(newEntry);
+			newNodePtr->setPriority(priority);
+
+		
+			if (isEmpty())
+			{
+				frontPtr = backPtr=newNodePtr; // The queue is empty
+				return true;
+			}
+
+			PriorityNode<T>* prev =frontPtr;
+			PriorityNode<T>* ptr =frontPtr->getNext();
+
+			if (priority > frontPtr->getPriority())
+			{
+				newNodePtr->setNext(frontPtr);
+				frontPtr = newNodePtr;
+			}
+			else if (ptr == nullptr || priority > ptr->getPriority())
+			{
+				frontPtr->setNext(newNodePtr);
+				newNodePtr->setNext(ptr);
+			}
+			else
+			{
+				while (ptr)
+				{
+					if (priority > ptr->getPriority())
+					{
+						prev->setNext(newNodePtr);
+						newNodePtr->setNext(ptr);
+						break;
+					}
+					else
+					{
+						prev = ptr;
+						ptr = ptr->setNext();
+					}
+				}
+			}
+			
+			return true;
+
+		}
+
+		bool dequeue(T& frntEntry)
+		{
+			if (isEmpty())
+				return false;
+
+			PriorityNode<T>* nodeToDeletePtr = frontPtr;
+
+			frntEntry = frontPtr->getItem();
+			frontPtr = frontPtr->getNext();
+
+			// Queue is not empty; remove front
+			if (nodeToDeletePtr == backPtr)	 // Special case: one node in queue
+				backPtr = nullptr;
+
+			// Free memory reserved by the dequeued node
+			delete nodeToDeletePtr;
+
+
+			return true;
+
+		}
+
+		bool peekFront(T& frntEntry) const
+		{
+			if (isEmpty())
+				return false;
+
+			frntEntry = frontPtr->getItem();
+			return true;
+
+		}
+
+		~PriorityQueue()
+		{
+			T x;
+			while (frontPtr)
+			{
+				this->dequeue(x);
+			}
+		}
+
+		T* toArray(int& count)
+		{
+			count = 0;
+
+			if (isEmpty())
+				return nullptr;
+			//counting the no. of items in the Queue
+			PriorityNode<T>* temp = frontPtr;
+			while (temp)
+			{
+				count++;
+				temp = temp->getNext();
+			}
+
+
+			T* Arr = new T[count];
+			temp = frontPtr;
+			for (int i = 0; i < count; i++)
+			{
+				Arr[i] = temp->getItem();
+				temp = temp->getNext();
+			}
+			return Arr;
+		}
+
+};
+
+
+// ==============================================================    template specialization for VIP Order ===========================================	//
+template<>
+class PriorityNode<Order*>
 {
-	if(frontPtr==nullptr)
-		return true;
-	else
-		return false;
-}
-/////////////////////////////////////////////////////////////////////////////////////////
-template <typename T>
-bool PriorityQueue<T>::enqueue( const T& newEntry, int priority)
+private:
+	Order* item; // A data item
+	PriorityNode<Order*>* next; // Pointer to next node
+	int priority;
+public:
+
+	PriorityNode()
+	{
+		next = nullptr;
+	}
+
+	PriorityNode(Order* r_Item)
+	{
+		item = r_Item;
+		next = nullptr;
+	}
+
+	PriorityNode(Order* r_Item, PriorityNode<Order*>* nextNodePtr)
+	{
+		item = r_Item;
+		next = nextNodePtr;
+	}
+
+	void setItem(Order* r_Item)
+	{
+		item = r_Item;
+	}
+
+	void setNext(PriorityNode<Order*>* nextNodePtr)
+	{
+		next = nextNodePtr;
+	}
+
+	Order* getItem() const
+	{
+		return item;
+	}
+
+	PriorityNode<Order*>* getNext() const
+	{
+		return next;
+	}
+
+	void setPriority(int pri)
+	{
+		priority = pri;
+	}
+
+	int getPriority()
+	{
+		return priority;
+	}
+
+};
+
+
+template <>
+class PriorityQueue<Order *>
 {
-	PriorityNode<T>* newNodePtr = new Node<T>(newEntry);
-	PriorityNode<T>* ptr;
-	PriorityNode<T>* prev;
-	newNodePtr->setPriority(priority);
-	// Insert the new node
-	if (isEmpty() || priority < frontPtr->getPriority())
-		frontPtr = newNodePtr; // The queue is empty
-	else {
-		prev = frontPtr;
-		ptr = frontPtr->getNext();
-		if (priority > frontPtr->getPriority()) 
+private:
+	PriorityNode<Order*>* backPtr;
+	PriorityNode<Order*>* frontPtr;
+public:
+
+	PriorityQueue<Order*>::PriorityQueue()
+	{
+		backPtr = nullptr;
+		frontPtr = nullptr;
+	}
+
+
+	PriorityQueue(const PriorityQueue<Order*>& Q)
+    {
+		backPtr = frontPtr = nullptr;
+		PriorityNode<Order*>* temp = Q.frontPtr;
+		while (temp)
+		{
+			this->enqueue(temp->getItem() , temp->getPriority());
+			temp = temp->getNext();
+		}
+	}
+
+	bool isEmpty() const
+	{
+		return frontPtr == nullptr;
+	}
+
+	bool enqueue( Order* newEntry, int priority)
+	{
+		PriorityNode<Order *>* newNodePtr = new PriorityNode<Order *>(newEntry);
+		newNodePtr->setPriority(priority);
+
+
+		if (isEmpty())
+		{
+			frontPtr = backPtr = newNodePtr; // The queue is empty
+			return true;
+		}
+
+		PriorityNode<Order*>* prev = frontPtr;
+		PriorityNode<Order*>* ptr = frontPtr->getNext();
+
+		if (priority > frontPtr->getPriority())
 		{
 			newNodePtr->setNext(frontPtr);
 			frontPtr = newNodePtr;
 		}
-		else if (ptr == nullptr || priority>ptr->getPriority()) 
+		else if (ptr == nullptr || priority > ptr->getPriority())
 		{
 			frontPtr->setNext(newNodePtr);
 			newNodePtr->setNext(ptr);
 		}
 		else
 		{
-			while (ptr) 
+			while (ptr)
 			{
-				if (priority > ptr->getPriority) 
+				if (priority > ptr->getPriority())
 				{
 					prev->setNext(newNodePtr);
 					newNodePtr->setNext(ptr);
 					break;
 				}
-				else 
+				else
 				{
 					prev = ptr;
-					ptr = ptr->setNext();
+					ptr = ptr->getNext();
 				}
 			}
 		}
+
+		return true;
+
 	}
-		
-	return true ;
-} 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-template <typename T>
-bool PriorityQueue<T>:: dequeue(T& frntEntry)
-{
-	if(isEmpty())
-		return false;
 
-	Node<T>* nodeToDeletePtr = frontPtr;
-	frntEntry = frontPtr->getItem();
-	frontPtr = frontPtr->getNext();
-	// Queue is not empty; remove front
-	if (nodeToDeletePtr == backPtr)	 // Special case: one node in queue
-		backPtr = nullptr ;	
-		
-	// Free memory reserved by the dequeued node
-	delete nodeToDeletePtr;
-
-
-	return true;
-
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////
-template <typename T>
-bool PriorityQueue<T>:: peekFront(T& frntEntry) const
-{
-	if(isEmpty())
-		return false;
-
-	frntEntry = frontPtr->getItem();
-	return true;
-
-}
-///////////////////////////////////////////////////////////////////////////////////
-
-template <typename T>
-PriorityQueue<T>::~PriorityQueue()
-{
-	T x;
-	while (frontPtr)
+	bool dequeue(Order* & frntEntry)
 	{
-		this->dequeue(x);
+		if (isEmpty())
+			return false;
+
+		PriorityNode<Order*>* nodeToDeletePtr = frontPtr;
+
+		frntEntry = frontPtr->getItem();
+		frontPtr = frontPtr->getNext();
+		// Queue is not empty; remove front
+		if (nodeToDeletePtr == backPtr)	 // Special case: one node in queue
+			backPtr = nullptr;
+
+		// Free memory reserved by the dequeued node
+		delete nodeToDeletePtr;
+
+		return true;
 	}
-}
 
-/////////////////////////////////////////////////////////////////////////////////////////
 
-template <typename T>
-T* PriorityQueue<T>::toArray(int& count)
-{
-	count=0;
-
-	if(!frontPtr)
-		return nullptr;
-	//counting the no. of items in the Queue
-	Node<T>* p = frontPtr;
-	while(p)
+	bool peekFront(Order*& frntEntry) const
 	{
-		count++;
-		p = p->getNext();
+		if (isEmpty())
+			return false;
+
+		frntEntry = frontPtr->getItem();
+		return true;
 	}
 
-
-	T* Arr= new T[count];
-	p = frontPtr;
-	for(int i=0; i<count;i++)
+	~PriorityQueue()
 	{
-		Arr[i] = p->getItem();
-		p = p->getNext();
+		Order* x;
+		while (frontPtr)
+		{
+			this->dequeue(x);
+		}
 	}
-	return Arr;
-}
+
+
+	Order* * toArray(int& count)
+	{
+		count = 0;
+
+		if (isEmpty())
+			return nullptr;
+		//counting the no. of items in the Queue
+		PriorityNode<Order*>* temp = frontPtr;
+		while (temp)
+		{
+			count++;
+			temp = temp->getNext();
+		}
+
+
+		Order** Arr = new Order * [count];
+		temp = frontPtr;
+		for (int i = 0; i < count; i++)
+		{
+			Arr[i] = temp->getItem();
+			temp = temp->getNext();
+		}
+		return Arr;
+	}
+};
