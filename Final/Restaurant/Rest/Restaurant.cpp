@@ -141,52 +141,123 @@ void Restaurant:: Load()
 	int cookSum=0;
 	int N,V,G;        // N for normal cooks  \ G for n=vegan cooks  \ V for vip cooks
 
-	int sN,sV,sG;     // speed of each type of cooks
+	int sN_min,sN_max,sV_min,sV_max,sG_min,sG_max;     // speed of each type of cooks
 
-	int BO,BN,BG,BV;  // BO is number of orders a cook must prepate before a break
-	// BN/BG/BV  are break duration for this type of cook
+	int BO,BN_min,BN_max,BG_min,BG_max,BV_min,BV_max;  // BO is number of orders a cook must prepate before a break
+	// (BN_max/min)/(BG_min/max)/(BV_min/max)  are break duration limits for this type of cook
 
 	ifstream infile;
 	infile.open("inputs.txt");
 	//cout<<infile.is_open()<<endl;
 
 	infile>>N>>G>>V;
-	infile>>sN>>sG>>sV;
-	infile>>BO>>BN>>BG>>BV;
+	infile>>sN_min>>sN_max>>sV_min>>sV_max>>sG_min>>sG_max;
+	infile>>BO>>BN_min>>BN_max>>BG_min>>BG_max>>BV_min>>BV_max;
+	//cout<<N<<G<<V;
 
 	ORD_TYPE Ntyp=TYPE_NRM;
 	ORD_TYPE Gtyp=TYPE_VGAN;
 	ORD_TYPE Vtyp=TYPE_VIP;
+	bool is_inRange;
 
 	int cID=1;
+	int break_dur;
+	int speed;
+	int spd_counter=0;
+	int brk_counter=0;
 	for(int i=0 ; i<N ; i++)
 	{
-		cID+= (rand()%15+1);
-		Cook* pc = new Cook(cID,Ntyp,sN);
-		pc->set_Break_duration(BN);   pc->set_Break_Orders(BO);
+		is_inRange=false;
+		while(!is_inRange)
+		{
+			if((spd_counter<=(sN_max-sN_min)) && (brk_counter<=(BN_max-BN_min)))
+			{
+				speed=sN_min+spd_counter;
+				break_dur=BN_min+brk_counter;
+				spd_counter++;   brk_counter++;
+				is_inRange=true;
+			}
+			else if(spd_counter<=(sN_max-sN_min))
+				brk_counter=0;
+			else if(brk_counter<=(BN_max-BN_min))
+				spd_counter=0;
+			else
+			{
+				brk_counter=0;
+				spd_counter=0;
+			}
+		}
+		Cook* pc = new Cook(cID,Ntyp,speed);
+		pc->set_Break_duration(break_dur);   pc->set_Break_Orders(BO);
 		N_Cook.insert(1, pc);
+		cID++;
+
 	}
+
 	for(int i=0 ; i<G ; i++)
 	{
-		cID+= (rand()%15+1);
-		Cook* pc = new Cook(cID,Gtyp,sG);
-		pc->set_Break_duration(BG);   pc->set_Break_Orders(BO);
+		is_inRange=false;
+		while(!is_inRange)
+		{
+			if((spd_counter<=(sG_max-sG_min)) && (brk_counter<=(BG_max-BG_min)))
+			{
+				speed=sG_min+spd_counter;
+				break_dur=BG_min+brk_counter;
+				spd_counter++;   brk_counter++;
+				is_inRange=true;
+			}
+			else if(spd_counter<=(sG_max-sG_min))
+				brk_counter=0;
+			else if(brk_counter<=(BG_max-BG_min))
+				spd_counter=0;
+			else
+			{
+				brk_counter=0;
+				spd_counter=0;
+			}
+		}
+		Cook* pc = new Cook(cID,Gtyp,speed);
+		pc->set_Break_duration(break_dur);   pc->set_Break_Orders(BO);
 		Veg_Cook.insert(1, pc);
+		cID++;
+
 	}
 	for(int i=0 ; i<V ; i++)
 	{
-		cID+= (rand()%15+1);
-		Cook* pc = new Cook(cID,Vtyp,sV);
-		pc->set_Break_duration(BV);   pc->set_Break_Orders(BO);
+		is_inRange=false;
+		while(!is_inRange)
+		{
+			if((spd_counter<=(sV_max-sV_min)) && (brk_counter<=(BV_max-BV_min)))
+			{
+				speed=sV_min+spd_counter;
+				break_dur=BV_min+brk_counter;
+				spd_counter++;   brk_counter++;
+				is_inRange=true;
+			}
+			else if(spd_counter<=(sV_max-sV_min))
+				brk_counter=0;
+			else if(brk_counter<=(BV_max-BV_min))
+				spd_counter=0;
+			else
+			{
+				brk_counter=0;
+				spd_counter=0;
+			}
+		}
+		Cook* pc = new Cook(cID,Vtyp,speed);
+		pc->set_Break_duration(break_dur);   pc->set_Break_Orders(BO);
 		Vip_Cook.insert(1, pc);
+		cID++;
 	}
 
-	//////////////////////////////// reading auto promtion limit \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
-	int AT;
-	infile>>AT;
-	set_AutoP(AT);
+	/////////////// injury probability and rest period /////////////
+	infile>>injprob>>rstprd;
 
+	//////////////////////////////// reading auto promtion limit and VIP time
+	//steps after which the order is considered an urgent order
+
+	infile>>AutoP>>VIP_wt;
 
 
 	////////////////// this section to read arrival orders information \\\\\\\\\\\\\\\\\\\\\\\\
@@ -256,144 +327,10 @@ void Restaurant:: interactive_mode()
 		pGUI->PrintMessage(timestep);
 
 		ExecuteEvents(CurrentTimeStep);
-		Vip_Handling(CurrentTimeStep);
-		Vegan_Handling(CurrentTimeStep);
-		Normal_Handling(CurrentTimeStep);
-
-		Order** order;
-		int count;
-		order = finshed_orders.toArray(count);
-		for (int i = 0; i < count; i++) {
-			pGUI->AddToDrawingList(order[i]);
-		}
-		pGUI->UpdateInterface();
-		pGUI->waitForClick();
-		CurrentTimeStep++;
-		pGUI->ResetDrawingList();
 	}
 }
 
-void Restaurant::Vip_Handling(int &timestep)
-{
-	if (!vip_order.isEmpty()) {
-		Order* order;
-		vip_order.peekFront(order);
-		vip_order.dequeue(order);
-		order->setStatus(SRV);
-		vip_service.enqueue(order);
-	}
 
-	if (timestep % 5 == 0) {
-		Order* order;
-		if (!vip_service.isEmpty()) {
-			vip_service.dequeue(order);
-			order->setStatus(DONE);
-			finshed_orders.enqueue(order);
-		}
-	}
-	Order** order;
-	int count;
-	order = vip_order.toArray(count);
-	for (int i = 0; i < count; i++) {
-		pGUI->AddToDrawingList(order[i]);
-	}
-	order = vip_service.toArray(count);
-	for (int i = 0; i < count; i++) {
-		pGUI->AddToDrawingList(order[i]);
-	}
-	Node<Cook*>*cook = Vip_Cook.getHead();
-	while (cook) {
-		Cook* ptr = cook->getItem();
-		pGUI->AddToDrawingList(ptr);
-		cook = cook->getNext();
-	}
-
-}
-
-void Restaurant::Vegan_Handling(int & timestep)
-{
-	if (!vegan_order.isEmpty()) {
-		Order* order;
-		vegan_order.peekFront(order);
-		vegan_order.dequeue(order);
-		order->setStatus(SRV);
-		veg_service.enqueue(order);
-	}
-	if (timestep % 5 == 0) {
-		Order* order;
-
-		if (!veg_service.isEmpty()) {
-			veg_service.dequeue(order);
-			order->setStatus(DONE);
-			finshed_orders.enqueue(order);
-		}
-	}
-	Order** order;
-	int count;
-
-	order = vegan_order.toArray(count);
-	for (int i = 0; i < count; i++) {
-		pGUI->AddToDrawingList(order[i]);
-	}
-
-	order = veg_service.toArray(count);
-	for (int i = 0; i < count; i++) {
-		pGUI->AddToDrawingList(order[i]);
-	}
-
-	Node<Cook*>* cook = Veg_Cook.getHead();
-	while (cook) {
-		Cook* ptr = cook->getItem();
-		pGUI->AddToDrawingList(ptr);
-		cook = cook->getNext();
-	}
-
-}
-
-void Restaurant::Normal_Handling(int & timestep)
-{
-	if (!N_order.isEmpty()) {
-		Node<Order*>* ptr = N_order.getHead();
-		(ptr->getItem())->setStatus(SRV);
-		nor_service.enqueue(ptr->getItem());
-		N_order.remove(1);
-	}
-
-
-
-	if (timestep % 5 == 0) {
-		Order* order;
-		if (!nor_service.isEmpty()) {
-			nor_service.dequeue(order);
-			order->setStatus(DONE);
-			finshed_orders.enqueue(order);
-		}
-
-	}
-
-	Node<Cook*>* cook = N_Cook.getHead();
-	while (cook) {
-		Cook* ptr = cook->getItem();
-		pGUI->AddToDrawingList(ptr);
-		cook = cook->getNext();
-	}
-
-
-	Node<Order*>* ord = N_order.getHead();
-	while (ord)
-	{
-		Order* ptr = ord->getItem();
-		pGUI->AddToDrawingList(ptr);
-		ord = ord->getNext();
-	}
-	Order** order;
-	int count;
-
-	order = nor_service.toArray(count);
-	for (int i = 0; i < count; i++) {
-		pGUI->AddToDrawingList(order[i]);
-	}
-}
 
 Restaurant::~Restaurant()
 {

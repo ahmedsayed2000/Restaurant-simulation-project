@@ -33,7 +33,10 @@ private:
 	// TODO: Add More Data Members As Needed
 
 
-	int AutoP;							        //AutoPo is the number of steps after which an order is promoted
+	
+	float injprob;
+	int rstprd;
+	int AutoP,VIP_wt;							        //AutoPo is the number of steps after which an order is promoted
 
 	List<Cook*> N_Cook;							// list of Normal cooks
 	List<Cook*> Veg_Cook;						// list of Vegan cooks

@@ -7,7 +7,7 @@ Cook::Cook()
 
 Cook :: Cook(int id , ORD_TYPE tp , int sp )
 {
-	setID(id);  setSpeed(sp);   setType(tp);
+	setID(id);  setSpeed(sp);   setType(tp); setState(false); setInjury(false);
 }
 
 Cook::~Cook()
@@ -74,6 +74,16 @@ void Cook::setState(bool state)
 bool Cook::getState()
 {
 	return busy;
+}
+
+bool Cook:: getInjury()
+{
+	return injured;
+}
+
+void Cook :: setInjury (bool inj)
+{
+	injured=inj;
 }
 
 
