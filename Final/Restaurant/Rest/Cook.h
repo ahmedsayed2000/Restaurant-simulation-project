@@ -12,7 +12,9 @@ class Cook
 	int Break_duration;         // break duration for this type of cook
 	bool busy;                // busy or not
 	bool injured;              // injured during service
-	float remain_dishes;       // remaining dishes for this cook to finish the order
+	bool inBreak;           // whether the cook is in break or not
+	int Break_counter;        // incrementig until the cook finishes his break time
+
 
 public:
 	Cook();
@@ -22,7 +24,7 @@ public:
 	ORD_TYPE GetType() const;
 	void setID(int);
 	void setType(ORD_TYPE) ;
-	void setSpeed(int sp);
+	void setSpeed(float sp);
 	float getSpeed();
 	void set_Break_Orders (int);
 	int get_Break_Orders ();
@@ -32,5 +34,10 @@ public:
 	bool getState();
 	void setInjury (bool);
 	bool getInjury();
+	void set_inBreak (bool);
+	bool is_inBreak();
+	void set_BreakCounter(int);
+	int get_BreakCounter();
+	
 
 };

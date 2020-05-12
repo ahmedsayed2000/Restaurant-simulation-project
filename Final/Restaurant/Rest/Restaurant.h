@@ -46,9 +46,9 @@ private:
 	PriorityQueue<Order*>    vip_order;				// waiting  vip orders
 	Queue<Order*>		     vegan_order;			// waiting  vegan orders
 
-	Queue<Order*>        vip_service;			// service  orders 
-	Queue<Order*>        veg_service;
-	Queue<Order*>        nor_service;
+	List<Order*>        vip_service;			// service  orders 
+	List<Order*>        veg_service;
+	List<Order*>        nor_service;
 
 	Queue<Order*>        finshed_orders;		// finished orders
 public:
@@ -73,8 +73,14 @@ public:
 	
     
 	void interactive_mode();   // interactive mode
-	void Vip_Handling(int &timestep);                       //function to deal with vip orders and cooks
-	void Vegan_Handling(int &timestep);                     //function to deal with vegan orders and cooks
-	void Normal_Handling(int &timestep);                    //function to deal with normal orders and cooks
+	/////////////////////// Waiting Handling Section //////////////////////////
+	void WaitOrders_Handling (int);      // handling waiting orders every timestep
+
+	void AddTo_Service ();              // adding from waiting lists to service lists
+	Cook* find_availableCook(ORD_TYPE);
+	Cook* find_InjuredCook();
+	void UrgentOrders_Handle();
+
+
 };
 

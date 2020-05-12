@@ -10,10 +10,11 @@ Order::Order(int id, ORD_TYPE r_Type)
 Order:: Order (int id , int time, ORD_TYPE typ , double  money)
 {
 	ArrTime=time;
-	FinishTime=ArrTime+5;
+	//FinishTime=ArrTime+5;
 	ID = (id>0&&id<1000)?id:0;
 	type=typ;
 	status = WAIT;
+	totalMoney=money;
 
 }
 
@@ -105,9 +106,34 @@ bool Order::get_cancellation()
 	return isCancelled;
 }
 
-int Order::getPriority()
+void Order:: set_remainDishes(float d)
 {
-	Priority = this->getMoney();
-	return Priority;
+	remain_dishes=d;
 }
+
+float Order:: get_remainDishes()
+{
+	return remain_dishes;
+}
+
+void Order ::set_cook(Cook* ptr)
+{
+	cook=ptr;
+}
+
+Cook* Order::getCook()
+{
+	return cook;
+}
+
+
+/*int Order::getPriority()
+{
+return Priority;
+}
+
+void Order:: setPriority(int pr)
+{
+Priority = getMoney();
+}*/
 
