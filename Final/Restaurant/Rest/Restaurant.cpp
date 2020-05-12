@@ -74,7 +74,7 @@ void Restaurant::FillDrawingList()
 	{
 		ExecuteEvents(i);
 	}
-	
+
 
 	while (!DEMO_Queue.isEmpty())
 	{
@@ -96,34 +96,34 @@ void Restaurant::AddOrders(Order* pO)
 		vegan_order.enqueue(pO);
 		break;
 	case TYPE_VIP:
-		vip_order.enqueue(pO,pO->getPriority());
+		vip_order.enqueue(pO,pO->getMoney());
 		break;
 	default:
 		break;
 	}
 }
 
-bool Restaurant::CancelOrder(int id)
+/*bool Restaurant::CancelOrder(int id)
 {
-	if (N_order.isEmpty())  return false;
+if (N_order.isEmpty())  return false;
 
-	Node<Order*>*  pOrd;
-	pOrd = N_order.getHead();
-	int count = 1;
-	while (pOrd)
-	{
-		Order* ord = pOrd->getItem();
-		if (ord->GetID() ==id)
-		{
-			N_order.remove(count);
-			return true;
-		}
-		pOrd = pOrd->getNext();
-		count++;
-	}
-	return false;
-
+Node<Order*>*  pOrd;
+pOrd = N_order.getHead();
+int count = 1;
+while (pOrd)
+{
+Order* ord = pOrd->getItem();
+if (ord->GetID() ==id)
+{
+N_order.remove(count);
+return true;
 }
+pOrd = pOrd->getNext();
+count++;
+}
+return false;
+
+}*/
 
 void Restaurant:: set_AutoP (int at)
 {
@@ -327,10 +327,177 @@ void Restaurant:: interactive_mode()
 		pGUI->PrintMessage(timestep);
 
 		ExecuteEvents(CurrentTimeStep);
+		WaitOrders_Handling(CurrentTimeStep);
 	}
 }
 
+void Restaurant:: WaitOrders_Handling (int timestep)
+{
+	AddTo_Service();
 
+}
+
+void Restaurant:: AddTo_Service ()
+{
+	///////// for vip orders//////////////
+	bool available=true;
+	while(!vip_order.isEmpty())
+	{
+		Cook* ptr=find_availableCook(TYPE_VIP);
+		Order* Pord;
+		if(ptr)
+		{
+			ptr->setState(true);
+			vip_order.dequeue(Pord);
+			Pord->set_cook(ptr);
+			Pord->set_remainDishes(Pord->GetSize());
+			vip_service.insert(vip_service.getlength(),Pord);
+		}
+		else
+		{
+			available=false;
+			break;
+		}
+	}
+
+	UrgentOrders_Handle();
+
+	////////////// for VEGAN orders ////////////////////
+	while(!vegan_order.isEmpty() && available)
+	{
+		Cook* ptr=find_availableCook(TYPE_VGAN);
+		Order* Pord;
+		if(ptr)
+		{
+			ptr->setState(true);
+			vegan_order.dequeue(Pord);
+			Pord->set_remainDishes(Pord->GetSize());
+			Pord->set_cook(ptr);
+			veg_service.insert(veg_service.getlength(),Pord);
+		}
+		else
+			break;
+	}
+	////////////// for NORMAL orders ////////////////////
+	while(!N_order.isEmpty() && available)
+	{
+		Cook* ptr=find_availableCook(TYPE_NRM);
+		Order* Pord;
+		if(ptr)
+		{
+			ptr->setState(true);
+			N_order.remove(N_order.getlength(),Pord);
+			Pord->set_remainDishes(Pord->GetSize());
+			Pord->set_cook(ptr);
+			nor_service.insert(nor_service.getlength(),Pord);
+		}
+		else
+			break;
+	}
+}
+
+Cook* Restaurant:: find_availableCook(ORD_TYPE typ)
+{
+	Node<Cook*>* ptr;
+	Cook* cook;
+
+	switch(typ)
+	{
+	case TYPE_VIP:
+		{
+			ptr=Vip_Cook.getHead();
+			while(ptr)
+			{
+				cook=ptr->getItem();
+				if(!(cook->getState() || cook->is_inBreak() || cook->getInjury() ))
+					return cook;
+				else
+					ptr=ptr->getNext();
+			}
+
+			ptr=N_Cook.getHead();
+			while(ptr)
+			{
+				cook=ptr->getItem();
+				if(!(cook->getState() || cook->is_inBreak() || cook->getInjury() ))
+					return cook;
+				else
+					ptr=ptr->getNext();
+			}
+
+			ptr=Veg_Cook.getHead();
+			while(ptr)
+			{
+				cook=ptr->getItem();
+				if(!(cook->getState() || cook->is_inBreak() || cook->getInjury()))
+					return cook;
+				else
+					ptr=ptr->getNext();
+			}
+			return nullptr;
+		}
+		break;
+
+	case TYPE_VGAN:
+		{
+			ptr=Veg_Cook.getHead();
+			while(ptr)
+			{
+				cook=ptr->getItem();
+				if(!(cook->getState() || cook->is_inBreak() || cook->getInjury()))
+					return cook;
+				else
+					ptr=ptr->getNext();
+			}
+			return nullptr;
+		}
+		break;
+
+	case TYPE_NRM:
+		{
+			ptr=N_Cook.getHead();
+			while(ptr)
+			{
+				cook=ptr->getItem();
+				if(!(cook->getState() || cook->is_inBreak() || cook->getInjury()))
+					return cook;
+				else
+					ptr=ptr->getNext();
+			}
+
+			ptr=Vip_Cook.getHead();
+			while(ptr)
+			{
+				cook=ptr->getItem();
+				if(!(cook->getState() || cook->is_inBreak() || cook->getInjury()))
+					return cook;
+				else
+					ptr=ptr->getNext();
+			}
+			return nullptr;
+		}
+		break;
+
+	default:
+		break;
+	}
+
+}
+
+Cook* Restaurant::find_InjuredCook()
+{
+
+}
+
+void Restaurant::UrgentOrders_Handle()
+{
+	Order* pord;
+	while(!vip_order.isEmpty())
+	{
+		vip_order.peekFront(pord);
+
+	}
+}
 
 Restaurant::~Restaurant()
 {

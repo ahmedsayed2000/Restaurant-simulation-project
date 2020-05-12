@@ -2,6 +2,7 @@
 #define __ORDER_H_
 
 #include "..\Defs.h"
+#include"Cook.h"
 
 class Order
 {
@@ -11,11 +12,14 @@ protected:
 	ORD_TYPE type;		//order type: Normal, vegan, VIP
 	ORD_STATUS status;	//waiting, in-service, done
 	int Size;	//The size of the order
-	int Priority;
+	//int Priority;
 	double totalMoney;	//Total order money
 
 	int ArrTime, ServTime, FinishTime;	//arrival, service start, and finish times
-	
+	int WaitTime;
+
+	float remain_dishes;    ////// 34an zyad myz3l4
+	Cook* cook;
 	
 	//
 	// TODO: Add More Data Members As Needed
@@ -64,7 +68,14 @@ public:
 	void set_cancellation (bool check);
 	bool get_cancellation ();
 
-	int getPriority();
+	void set_remainDishes(float);
+	float get_remainDishes();
+
+	void set_cook(Cook*);
+	Cook* getCook();
+
+	//void setPriority(int);
+	//int getPriority();
 
 
 };

@@ -8,6 +8,8 @@ Cook::Cook()
 Cook::Cook(int id, ORD_TYPE tp, float sp)
 {
 	setID(id);  setSpeed(sp);   setType(tp); setState(false); setInjury(false);
+	set_inBreak(false);  set_BreakCounter(0);
+
 }
 
 
@@ -39,7 +41,7 @@ void Cook::setType(ORD_TYPE t)
 	type = t;
 }
 
-void Cook:: setSpeed(int sp)
+void Cook:: setSpeed(float sp)
 {
 	speed=sp;
 }
@@ -88,6 +90,26 @@ void Cook :: setInjury (bool inj)
 	injured=inj;
 }
 
+void Cook::set_BreakCounter(int count)
+{
+	Break_counter=count;
+}
+int Cook::get_BreakCounter()
+{
+	return Break_counter;
+}
+void Cook::set_inBreak(bool B)
+{
+	inBreak=B;
+}
+bool Cook::is_inBreak()
+{
+	return inBreak;
+}
+void Cook:: set_remainingDiches(float d)
+{
+	remain_dishes=d;
+}
 
 
 

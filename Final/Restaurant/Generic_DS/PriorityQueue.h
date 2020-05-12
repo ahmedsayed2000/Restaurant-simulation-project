@@ -10,7 +10,7 @@ class PriorityNode
 private:
 	T item; // A data item
 	PriorityNode<T>* next; // Pointer to next node
-	int priority;
+	double priority;
 public:
 
 	PriorityNode()
@@ -50,12 +50,12 @@ public:
 		return next;
 	}
 
-	void setPriority(int pri)
+	void setPriority(double pri)
 	{
 		priority = pri;
 	}
 
-	int getPriority()
+	double getPriority()
 	{
 		return priority;
 	}
@@ -94,7 +94,7 @@ public :
 			return frontPtr == nullptr;
 		}
 
-		bool enqueue(const T& newEntry, int priority)
+		bool enqueue(const T& newEntry, double priority)
 		{
 			PriorityNode<T>* newNodePtr = new PriorityNode<T>(newEntry);
 			newNodePtr->setPriority(priority);
@@ -132,7 +132,7 @@ public :
 					else
 					{
 						prev = ptr;
-						ptr = ptr->setNext();
+						ptr = ptr->getNext();
 					}
 				}
 			}
@@ -211,13 +211,13 @@ public :
 
 
 // ==============================================================    template specialization for VIP Order ===========================================	//
-template<>
+/*template<>
 class PriorityNode<Order*>
 {
 private:
 	Order* item; // A data item
 	PriorityNode<Order*>* next; // Pointer to next node
-	int priority;
+	double priority;
 public:
 
 	PriorityNode()
@@ -257,12 +257,12 @@ public:
 		return next;
 	}
 
-	void setPriority(int pri)
+	void setPriority(double pri)
 	{
 		priority = pri;
 	}
 
-	int getPriority()
+	double getPriority()
 	{
 		return priority;
 	}
@@ -270,7 +270,7 @@ public:
 };
 
 
-template <>
+/*template <>
 class PriorityQueue<Order *>
 {
 private:
@@ -301,7 +301,7 @@ public:
 		return frontPtr == nullptr;
 	}
 
-	bool enqueue( Order* newEntry, int priority)
+	bool enqueue( Order* newEntry, double priority)
 	{
 		PriorityNode<Order *>* newNodePtr = new PriorityNode<Order *>(newEntry);
 		newNodePtr->setPriority(priority);
@@ -411,4 +411,4 @@ public:
 		}
 		return Arr;
 	}
-};
+};*/
