@@ -10,7 +10,7 @@
 #include "..\Generic_DS\List.h"
 #include<fstream>
 #include"string.h"
-
+#include "..\Generic_DS\PriorityQueue.h"
 
 #include "Order.h"
 
@@ -42,9 +42,9 @@ private:
 	List<Cook*> Veg_Cook;						// list of Vegan cooks
 	List<Cook*> Vip_Cook;						// list of Vip cooks
 
-	List <Order*>        N_order;		        // waiting  normal orders
-	Queue<Order*>		 vip_order;				// waiting  vip orders
-	Queue<Order*>		 vegan_order;			// waiting  vegan orders
+	List <Order*>            N_order;		        // waiting  normal orders
+	PriorityQueue<Order*>    vip_order;				// waiting  vip orders
+	Queue<Order*>		     vegan_order;			// waiting  vegan orders
 
 	Queue<Order*>        vip_service;			// service  orders 
 	Queue<Order*>        veg_service;

@@ -96,7 +96,7 @@ void Restaurant::AddOrders(Order* pO)
 		vegan_order.enqueue(pO);
 		break;
 	case TYPE_VIP:
-		vip_order.enqueue(pO);
+		vip_order.enqueue(pO,pO->getPriority());
 		break;
 	default:
 		break;
