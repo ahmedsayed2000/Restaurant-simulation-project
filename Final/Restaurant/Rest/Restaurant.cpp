@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <time.h>
 #include <iostream>
+#include <fstream>
 using namespace std;
 
 #include "Restaurant.h"
@@ -90,7 +91,7 @@ void Restaurant::AddOrders(Order* pO)
 	switch (TYP)
 	{
 	case TYPE_NRM:
-		N_order.insert(N_order.getlength(),pO);
+		N_order.insert(N_order.getlength()+1,pO);
 		break;
 	case TYPE_VGAN:
 		vegan_order.enqueue(pO);
@@ -327,8 +328,26 @@ void Restaurant:: interactive_mode()
 		pGUI->PrintMessage(timestep);
 
 		ExecuteEvents(CurrentTimeStep);
+//<<<<<<< Updated upstream
 		WaitOrders_Handling(CurrentTimeStep);
+
+		///////////////////////////////////////Service Stage///////////////////////////////////////////////////////////////
+		Node<Order*>* ptr = vip_service.getHead();
+		Cook* cook;
+		while (ptr) {
+			cook = (ptr->getItem())->getCook();
+			ptr->getItem()->set_ServiceTime(ptr->getItem()->get_ServiceTime() + 1);
+			(ptr->getItem())->set_remainDishes((ptr->getItem()) ->get_remainDishes()-cook->getSpeed());
+			if ((ptr->getItem())->get_remainDishes() <= 0) {
+				cook->set_OrdersPrepared(cook->get_OrdersPrepared() + 1);
+				cook->setState(false);
+
+				//delete from list
+			}
+			ptr = ptr->getNext();
+		}
 	}
+
 }
 
 void Restaurant:: WaitOrders_Handling (int timestep)
@@ -351,7 +370,7 @@ void Restaurant:: AddTo_Service ()
 			vip_order.dequeue(Pord);
 			Pord->set_cook(ptr);
 			Pord->set_remainDishes(Pord->GetSize());
-			vip_service.insert(vip_service.getlength(),Pord);
+			vip_service.insert(vip_service.getlength()+1,Pord);
 		}
 		else
 		{
@@ -373,7 +392,7 @@ void Restaurant:: AddTo_Service ()
 			vegan_order.dequeue(Pord);
 			Pord->set_remainDishes(Pord->GetSize());
 			Pord->set_cook(ptr);
-			veg_service.insert(veg_service.getlength(),Pord);
+			veg_service.insert(veg_service.getlength()+1,Pord);
 		}
 		else
 			break;
@@ -389,7 +408,7 @@ void Restaurant:: AddTo_Service ()
 			N_order.remove(N_order.getlength(),Pord);
 			Pord->set_remainDishes(Pord->GetSize());
 			Pord->set_cook(ptr);
-			nor_service.insert(nor_service.getlength(),Pord);
+			nor_service.insert(nor_service.getlength()+1,Pord);
 		}
 		else
 			break;
@@ -480,6 +499,13 @@ Cook* Restaurant:: find_availableCook(ORD_TYPE typ)
 
 	default:
 		break;
+//=======
+
+
+
+		
+
+//>>>>>>> Stashed changes
 	}
 
 }

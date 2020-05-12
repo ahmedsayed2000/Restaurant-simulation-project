@@ -77,7 +77,8 @@ public:
 	//void setPriority(int);
 	//int getPriority();
 
-
+	void set_ServiceTime(int time);
+	int  get_ServiceTime();
 };
 
 #endif
