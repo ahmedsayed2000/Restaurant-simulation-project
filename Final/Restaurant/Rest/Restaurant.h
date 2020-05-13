@@ -74,6 +74,7 @@ public:
 	
     
 	void interactive_mode();   // interactive mode
+//<<<<<<< Updated upstream
 	/////////////////////// Waiting Handling Section //////////////////////////
 	void WaitOrders_Handling ();      // handling waiting orders every timestep
 
@@ -85,5 +86,8 @@ public:
 	void increment_Wt();
 
 
+//=======
+	
+//>>>>>>> Stashed changes
 };
 

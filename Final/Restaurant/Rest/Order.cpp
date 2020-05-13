@@ -142,8 +142,20 @@ void Order:: set_WaitTime(int time)
 return Priority;
 }
 
+<<<<<<< Updated upstream
 void Order:: setPriority(int pr)
 {
 Priority = getMoney();
 }*/
+//=======
+void Order::set_ServiceTime(int time)
+{
+	ServTime = time;
+}
+
+int Order::get_ServiceTime()
+{
+	return ServTime;
+}
+//>>>>>>> Stashed changes
 

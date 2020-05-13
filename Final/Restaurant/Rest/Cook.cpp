@@ -98,6 +98,22 @@ int Cook::get_BreakCounter()
 {
 	return Break_counter;
 }
+void Cook::set_OrdersPrepared(int op)
+{
+	Orders_Prepared = op;
+}
+int Cook::get_OrdersPrepared()
+{
+	return Orders_Prepared;
+}
+void Cook::set_OutTime(int ot)
+{
+	OutTime = ot;
+}
+int Cook::get_OutTime()
+{
+	return OutTime;
+}
 void Cook::set_inBreak(bool B)
 {
 	inBreak=B;
@@ -107,6 +123,7 @@ bool Cook::is_inBreak()
 	return inBreak;
 }
 
+<<<<<<< HEAD
 void Cook::set_inRest(bool r)
 {
 	inRest=r;
@@ -116,6 +133,8 @@ bool Cook::is_InRest()
 {
 	return inRest;
 }
+=======
+>>>>>>> bc88a6930d6ccf387b84ebe862783bfda7782083
 
 
 

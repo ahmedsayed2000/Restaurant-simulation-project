@@ -10,6 +10,8 @@ class Cook
 	int speed;		//dishes it can prepare in one clock tick (in one timestep)
 	int Break_Orders;         // number of orders a cook must prepate before a break
 	int Break_duration;         // break duration for this type of cook
+	int Orders_Prepared;
+	int OutTime;
 	bool busy;                // busy or not
 	bool injured;              // injured during service
 	bool inBreak;           // whether the cook is in break or not
@@ -38,8 +40,16 @@ public:
 	bool is_inBreak();
 	void set_BreakCounter(int);
 	int get_BreakCounter();
+
 	void set_inRest(bool);
 	bool is_InRest();
 	
+
+	void set_OrdersPrepared(int op);
+	int get_OrdersPrepared();
+	void set_OutTime(int ot);
+	int get_OutTime();
+
+
 
 };
