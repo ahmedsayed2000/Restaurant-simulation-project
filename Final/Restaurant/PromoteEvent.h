@@ -2,9 +2,9 @@
 #include "Events/Event.h"
 class PromoteEvent :	public Event
 {
-	int Extra_Money;
+	double Extra_Money;
 public:
-	PromoteEvent(int eTime, int ordID  ,  int money);
+	PromoteEvent(int eTime, int ordID  ,  double money);
 	virtual void Execute(Restaurant* pRest);
 };
 

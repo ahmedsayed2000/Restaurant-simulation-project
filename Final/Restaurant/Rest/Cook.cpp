@@ -106,9 +106,15 @@ bool Cook::is_inBreak()
 {
 	return inBreak;
 }
-void Cook:: set_remainingDiches(float d)
+
+void Cook::set_inRest(bool r)
 {
-	remain_dishes=d;
+	inRest=r;
+}
+
+bool Cook::is_InRest()
+{
+	return inRest;
 }
 
 

@@ -13,9 +13,10 @@ public:
 	int getlength();
 	Node<T>* getHead();
 	bool insert(int pos,T Item);
-	bool remove(int pos , T entry);
+	bool remove(int pos , T &entry);
 	void clear();
 	bool replace(int pos, T Item);
+	int get_index(T &Item);
 	virtual ~List();
 };
 
@@ -64,17 +65,17 @@ inline Node<T>* List<T>::getHead()
 template<typename T>
 inline bool List<T>::insert(int pos, T Item)
 {
-	bool ableToInsert = (pos >= 0) && (pos <= itemcount + 1);
+	bool ableToInsert = (pos > 0) && (pos <= itemcount + 1);
 	if (ableToInsert)
 	{
 		Node<T>* ptr = new Node<T>(Item);
-		if (pos == 1 || pos == 0) {
+		if (pos == 1 ) {
 			ptr->setNext(Head);
 			Head = ptr;
 		}
 		else {
 			Node<T>* prev = Head;
-			int count=1;
+			int count=2;
 			while (count < pos) {
 				prev = prev->getNext();
 				count++;
@@ -116,12 +117,15 @@ inline bool List<T>::remove(int pos , T &entry)
 	return ableToRemove;
 }
 
+
+
 template<typename T>
 inline void List<T>::clear()
 {
+	T item;
 	while (!isEmpty())
 	{
-		remove(1);
+		remove(1,item);
 	}
 }
 
@@ -145,6 +149,24 @@ inline bool List<T>::replace(int pos, T Item)
 	}
 	return false;
 }
+
+template<typename T>
+inline int List<T>::get_index(T & Item)
+{
+	Node<T>* ptr = Head;
+	int count = 1;
+	while (ptr)
+	{
+		if (ptr->getItem() == Item)
+			return count;
+		else
+			count++;
+		ptr = ptr->getNext();
+	}
+	return -1;
+}
+
+
 
 template<typename T>
 inline List<T>::~List()
