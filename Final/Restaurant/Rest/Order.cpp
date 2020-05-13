@@ -15,7 +15,8 @@ Order:: Order (int id , int time, ORD_TYPE typ , double  money)
 	type=typ;
 	status = WAIT;
 	totalMoney=money;
-
+	WaitTime=0;
+	ServTime=0;
 }
 
 
