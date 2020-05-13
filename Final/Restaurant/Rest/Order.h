@@ -59,6 +59,9 @@ public:
 	void set_FinishTime (int tm);
 	int get_FinishTime();
 
+	void set_WaitTime(int);
+	int get_WaitTime();
+
 	
 	// set order type
 	void setOrder_Typ (ORD_TYPE typ);

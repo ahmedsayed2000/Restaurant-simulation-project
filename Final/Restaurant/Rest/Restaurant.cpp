@@ -104,27 +104,47 @@ void Restaurant::AddOrders(Order* pO)
 	}
 }
 
-/*bool Restaurant::CancelOrder(int id)
+bool Restaurant::CancelOrder(int id)
 {
-if (N_order.isEmpty())  return false;
+	if (N_order.isEmpty())  return false;
 
-Node<Order*>*  pOrd;
-pOrd = N_order.getHead();
-int count = 1;
-while (pOrd)
-{
-Order* ord = pOrd->getItem();
-if (ord->GetID() ==id)
-{
-N_order.remove(count);
-return true;
-}
-pOrd = pOrd->getNext();
-count++;
-}
-return false;
+	Node<Order*>*  pOrd;
+	pOrd = N_order.getHead();
+	int count = 1;
+	while (pOrd)
+	{
+		Order* ord = pOrd->getItem();
+		if (ord->GetID() ==id)
+		{
+			N_order.remove(count,ord);
+			return true;
+		}
+		pOrd = pOrd->getNext();
+		count++;
+	}
+	return false;
 
-}*/
+}
+
+bool Restaurant:: PromotionOrder (int id , double money)
+{
+	Order* pord;
+	for(int i=1; i<=N_order.getlength() ; i++)
+	{
+		N_order.remove(i,pord);
+		if(pord->GetID() == id)
+		{
+			pord->setOrder_Typ(TYPE_VIP);
+			pord->set_Money(pord->getMoney()+money);
+			vip_order.enqueue(pord,pord->getMoney());
+			return true;
+		}
+		else
+			N_order.insert(i,pord);
+	}
+	return false;
+
+}
 
 void Restaurant:: set_AutoP (int at)
 {
@@ -328,8 +348,14 @@ void Restaurant:: interactive_mode()
 		pGUI->PrintMessage(timestep);
 
 		ExecuteEvents(CurrentTimeStep);
+
+		WaitOrders_Handling();
+		pGUI->waitForClick();
+		CurrentTimeStep++;
+		pGUI->UpdateInterface();
+
 //<<<<<<< Updated upstream
-		WaitOrders_Handling(CurrentTimeStep);
+		WaitOrders_Handling();
 
 		///////////////////////////////////////Service Stage///////////////////////////////////////////////////////////////
 		Node<Order*>* ptr = vip_service.getHead();
@@ -346,20 +372,37 @@ void Restaurant:: interactive_mode()
 			}
 			ptr = ptr->getNext();
 		}
+
 	}
 
 }
 
-void Restaurant:: WaitOrders_Handling (int timestep)
+void Restaurant:: WaitOrders_Handling ()
 {
 	AddTo_Service();
+	increment_Wt();
 
+	Order* pord;
+	for(int i=1; i<=N_order.getlength() ; i++)
+	{
+		N_order.remove(i,pord);
+		pGUI->AddToDrawingList(pord);
+		N_order.insert(i,pord);
+	}
+
+	int count;
+	Order** ptr=vip_order.toArray(count);
+	for(int i=0 ; i<count ; i++)
+		pGUI->AddToDrawingList(ptr[i]);
+
+	ptr=vegan_order.toArray(count);
+	for(int i=0 ; i<count ; i++)
+		pGUI->AddToDrawingList(ptr[i]);
 }
 
 void Restaurant:: AddTo_Service ()
 {
 	///////// for vip orders//////////////
-	bool available=true;
 	while(!vip_order.isEmpty())
 	{
 		Cook* ptr=find_availableCook(TYPE_VIP);
@@ -374,7 +417,6 @@ void Restaurant:: AddTo_Service ()
 		}
 		else
 		{
-			available=false;
 			break;
 		}
 	}
@@ -382,7 +424,7 @@ void Restaurant:: AddTo_Service ()
 	UrgentOrders_Handle();
 
 	////////////// for VEGAN orders ////////////////////
-	while(!vegan_order.isEmpty() && available)
+	while(!vegan_order.isEmpty())
 	{
 		Cook* ptr=find_availableCook(TYPE_VGAN);
 		Order* Pord;
@@ -398,14 +440,14 @@ void Restaurant:: AddTo_Service ()
 			break;
 	}
 	////////////// for NORMAL orders ////////////////////
-	while(!N_order.isEmpty() && available)
+	while(!N_order.isEmpty())
 	{
 		Cook* ptr=find_availableCook(TYPE_NRM);
 		Order* Pord;
 		if(ptr)
 		{
 			ptr->setState(true);
-			N_order.remove(N_order.getlength(),Pord);
+			N_order.remove(1,Pord);
 			Pord->set_remainDishes(Pord->GetSize());
 			Pord->set_cook(ptr);
 			nor_service.insert(nor_service.getlength()+1,Pord);
@@ -413,6 +455,9 @@ void Restaurant:: AddTo_Service ()
 		else
 			break;
 	}
+
+	AutoPromotion_handling();
+
 }
 
 Cook* Restaurant:: find_availableCook(ORD_TYPE typ)
@@ -428,7 +473,7 @@ Cook* Restaurant:: find_availableCook(ORD_TYPE typ)
 			while(ptr)
 			{
 				cook=ptr->getItem();
-				if(!(cook->getState() || cook->is_inBreak() || cook->getInjury() ))
+				if(!(cook->getState() || cook->is_inBreak() || cook->is_InRest() ))
 					return cook;
 				else
 					ptr=ptr->getNext();
@@ -438,7 +483,7 @@ Cook* Restaurant:: find_availableCook(ORD_TYPE typ)
 			while(ptr)
 			{
 				cook=ptr->getItem();
-				if(!(cook->getState() || cook->is_inBreak() || cook->getInjury() ))
+				if(!(cook->getState() || cook->is_inBreak() || cook->is_InRest() ))
 					return cook;
 				else
 					ptr=ptr->getNext();
@@ -448,7 +493,7 @@ Cook* Restaurant:: find_availableCook(ORD_TYPE typ)
 			while(ptr)
 			{
 				cook=ptr->getItem();
-				if(!(cook->getState() || cook->is_inBreak() || cook->getInjury()))
+				if(!(cook->getState() || cook->is_inBreak() || cook->is_InRest()))
 					return cook;
 				else
 					ptr=ptr->getNext();
@@ -463,7 +508,7 @@ Cook* Restaurant:: find_availableCook(ORD_TYPE typ)
 			while(ptr)
 			{
 				cook=ptr->getItem();
-				if(!(cook->getState() || cook->is_inBreak() || cook->getInjury()))
+				if(!(cook->getState() || cook->is_inBreak() || cook->is_InRest()))
 					return cook;
 				else
 					ptr=ptr->getNext();
@@ -478,7 +523,7 @@ Cook* Restaurant:: find_availableCook(ORD_TYPE typ)
 			while(ptr)
 			{
 				cook=ptr->getItem();
-				if(!(cook->getState() || cook->is_inBreak() || cook->getInjury()))
+				if(!(cook->getState() || cook->is_inBreak() || cook->is_InRest()))
 					return cook;
 				else
 					ptr=ptr->getNext();
@@ -488,7 +533,7 @@ Cook* Restaurant:: find_availableCook(ORD_TYPE typ)
 			while(ptr)
 			{
 				cook=ptr->getItem();
-				if(!(cook->getState() || cook->is_inBreak() || cook->getInjury()))
+				if(!(cook->getState() || cook->is_inBreak() || cook->is_InRest()))
 					return cook;
 				else
 					ptr=ptr->getNext();
@@ -510,20 +555,120 @@ Cook* Restaurant:: find_availableCook(ORD_TYPE typ)
 
 }
 
-Cook* Restaurant::find_InjuredCook()
+Cook* Restaurant::findInRest_OrInBreak()
 {
-
+	Cook* cook=nullptr;
+	Node<Cook*>* ptr=Vip_Cook.getHead();
+	while(ptr)
+	{
+		cook=ptr->getItem();
+		if(cook->is_inBreak() || cook->is_InRest())
+			return cook;
+		else
+			ptr=ptr->getNext();
+	}
+	ptr=N_Cook.getHead();
+	while(ptr)
+	{
+		cook=ptr->getItem();
+		if(cook->is_inBreak() || cook->is_InRest())
+			return cook;
+		else
+			ptr=ptr->getNext();
+	}
+	ptr=Veg_Cook.getHead();
+	while(ptr)
+	{
+		cook=ptr->getItem();
+		if(cook->is_inBreak() || cook->is_InRest())
+			return cook;
+		else
+			ptr=ptr->getNext();
+	}
+	return cook;
 }
 
 void Restaurant::UrgentOrders_Handle()
 {
+	Cook* cook;
 	Order* pord;
 	while(!vip_order.isEmpty())
 	{
 		vip_order.peekFront(pord);
+		if(pord->get_WaitTime() > VIP_wt)
+		{
+			cook=find_availableCook(TYPE_VIP);
+			if(cook)
+			{
+				cook->setState(true);
+				vip_order.dequeue(pord);
+				pord->set_cook(cook);
+				pord->set_remainDishes(pord->GetSize());
+				vip_service.insert(vip_service.getlength()+1,pord);
+			}
+			else
+			{
+				cook=findInRest_OrInBreak();
+				if(cook)
+				{
+					cook->setState(true);
+					vip_order.dequeue(pord);
+					pord->set_cook(cook);
+					pord->set_remainDishes(pord->GetSize());
+					vip_service.insert(vip_service.getlength()+1,pord);
+				}
+				else
+					return;
+			}
+		}
+		else
+			return;
 
 	}
 }
+
+void Restaurant:: increment_Wt()
+{
+	int count;
+	Order** ptr=vip_order.toArray(count);
+	for(int i=0 ; i<count ; i++)
+		ptr[i]->set_WaitTime(ptr[i]->get_WaitTime()+1);
+
+	ptr=vegan_order.toArray(count);
+	for(int i=0 ; i<count ; i++)
+		ptr[i]->set_WaitTime(ptr[i]->get_WaitTime()+1);
+
+	Order* pord;
+	for(int i=1 ; i<=N_order.getlength() ; i++)
+	{
+		N_order.remove(i,pord);
+		pord->set_WaitTime(ptr[i]->get_WaitTime()+1);
+		N_order.insert(i,pord);
+	}
+
+
+}
+
+
+void Restaurant:: AutoPromotion_handling()
+{
+	Order* pord;
+	while(!N_order.isEmpty())
+	{
+		N_order.remove(1,pord);
+		if(pord->get_WaitTime() > AutoP)
+		{
+			pord->setOrder_Typ(TYPE_VIP);
+			vip_order.enqueue(pord,pord->getMoney());
+		}
+		else
+		{
+			N_order.insert(1,pord);
+			return;
+		}
+	}
+}
+
 
 Restaurant::~Restaurant()
 {

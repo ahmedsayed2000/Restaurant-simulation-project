@@ -123,6 +123,18 @@ bool Cook::is_inBreak()
 	return inBreak;
 }
 
+<<<<<<< HEAD
+void Cook::set_inRest(bool r)
+{
+	inRest=r;
+}
+
+bool Cook::is_InRest()
+{
+	return inRest;
+}
+=======
+>>>>>>> bc88a6930d6ccf387b84ebe862783bfda7782083
 
 
 

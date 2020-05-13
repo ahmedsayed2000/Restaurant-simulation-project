@@ -16,7 +16,7 @@ class Cook
 	bool injured;              // injured during service
 	bool inBreak;           // whether the cook is in break or not
 	int Break_counter;        // incrementig until the cook finishes his break time
-
+	bool inRest;
 
 public:
 	Cook();
@@ -40,10 +40,16 @@ public:
 	bool is_inBreak();
 	void set_BreakCounter(int);
 	int get_BreakCounter();
+
+	void set_inRest(bool);
+	bool is_InRest();
+	
+
 	void set_OrdersPrepared(int op);
 	int get_OrdersPrepared();
 	void set_OutTime(int ot);
 	int get_OutTime();
+
 
 
 };

@@ -67,6 +67,7 @@ public:
 
 	void AddOrders(Order * pO);   // dealing with arrival Event
 	bool CancelOrder(int id);     //dealing with cancel Event
+	bool PromotionOrder (int id , double money);
 
 	void set_AutoP (int);
 	int  get_AutoP ();
@@ -75,12 +76,14 @@ public:
 	void interactive_mode();   // interactive mode
 //<<<<<<< Updated upstream
 	/////////////////////// Waiting Handling Section //////////////////////////
-	void WaitOrders_Handling (int);      // handling waiting orders every timestep
+	void WaitOrders_Handling ();      // handling waiting orders every timestep
 
 	void AddTo_Service ();              // adding from waiting lists to service lists
 	Cook* find_availableCook(ORD_TYPE);
-	Cook* find_InjuredCook();
+	Cook* findInRest_OrInBreak();
 	void UrgentOrders_Handle();
+	void AutoPromotion_handling();
+	void increment_Wt();
 
 
 //=======

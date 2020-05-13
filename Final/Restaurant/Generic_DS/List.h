@@ -75,7 +75,7 @@ inline bool List<T>::insert(int pos, T Item)
 		}
 		else {
 			Node<T>* prev = Head;
-			int count=1;
+			int count=2;
 			while (count < pos) {
 				prev = prev->getNext();
 				count++;
@@ -117,12 +117,15 @@ inline bool List<T>::remove(int pos , T &entry)
 	return ableToRemove;
 }
 
+
+
 template<typename T>
 inline void List<T>::clear()
 {
+	T item;
 	while (!isEmpty())
 	{
-		remove(1);
+		remove(1,item);
 	}
 }
 
@@ -162,6 +165,7 @@ inline int List<T>::get_index(T & Item)
 	}
 	return -1;
 }
+
 
 
 template<typename T>

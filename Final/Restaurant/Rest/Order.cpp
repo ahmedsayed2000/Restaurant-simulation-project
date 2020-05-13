@@ -126,6 +126,16 @@ Cook* Order::getCook()
 	return cook;
 }
 
+int Order::get_WaitTime()
+{
+	return WaitTime;
+}
+
+void Order:: set_WaitTime(int time)
+{
+	WaitTime=time;
+}
+
 
 /*int Order::getPriority()
 {
