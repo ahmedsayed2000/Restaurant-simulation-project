@@ -116,7 +116,7 @@ bool Restaurant::CancelOrder(int id)
 		Order* ord = pOrd->getItem();
 		if (ord->GetID() ==id)
 		{
-			N_order.remove(count,ord);
+			N_order.remove(count);
 			return true;
 		}
 		pOrd = pOrd->getNext();
@@ -131,7 +131,7 @@ bool Restaurant:: PromotionOrder (int id , double money)
 	Order* pord;
 	for(int i=1; i<=N_order.getlength() ; i++)
 	{
-		N_order.remove(i,pord);
+		N_order.remove(i);
 		if(pord->GetID() == id)
 		{
 			pord->setOrder_Typ(TYPE_VIP);
@@ -358,8 +358,10 @@ void Restaurant:: interactive_mode()
 		WaitOrders_Handling();
 
 		///////////////////////////////////////Service Stage///////////////////////////////////////////////////////////////
+		ofstream myfile;
 		Node<Order*>* ptr = vip_service.getHead();
 		Cook* cook;
+		int count = 1;
 		while (ptr) {
 			cook = (ptr->getItem())->getCook();
 			ptr->getItem()->set_ServiceTime(ptr->getItem()->get_ServiceTime() + 1);
@@ -367,10 +369,57 @@ void Restaurant:: interactive_mode()
 			if ((ptr->getItem())->get_remainDishes() <= 0) {
 				cook->set_OrdersPrepared(cook->get_OrdersPrepared() + 1);
 				cook->setState(false);
-
-				//delete from list
+				ptr->getItem()->setStatus(DONE);
+				finshed_orders.enqueue(ptr->getItem());
+				ptr = ptr->getNext();
+				vip_service.remove(count);
 			}
-			ptr = ptr->getNext();
+			else
+			{
+				ptr = ptr->getNext();
+				count++;
+			}
+		}
+		ptr = veg_service.getHead();
+		count = 1;
+		while (ptr) {
+			cook = (ptr->getItem())->getCook();
+			ptr->getItem()->set_ServiceTime(ptr->getItem()->get_ServiceTime() + 1);
+			(ptr->getItem())->set_remainDishes((ptr->getItem())->get_remainDishes() - cook->getSpeed());
+			if ((ptr->getItem())->get_remainDishes() <= 0) {
+				cook->set_OrdersPrepared(cook->get_OrdersPrepared() + 1);
+				cook->setState(false);
+				ptr->getItem()->setStatus(DONE);
+				finshed_orders.enqueue(ptr->getItem());
+				ptr = ptr->getNext();
+				veg_service.remove(count);
+			}
+			else
+			{
+				ptr = ptr->getNext();
+				count++;
+			}
+			
+		}
+		ptr = nor_service.getHead();
+		count = 1;
+		while (ptr) {
+			cook = (ptr->getItem())->getCook();
+			ptr->getItem()->set_ServiceTime(ptr->getItem()->get_ServiceTime() + 1);
+			(ptr->getItem())->set_remainDishes((ptr->getItem())->get_remainDishes() - cook->getSpeed());
+			if ((ptr->getItem())->get_remainDishes() <= 0) {
+				cook->set_OrdersPrepared(cook->get_OrdersPrepared() + 1);
+				cook->setState(false);
+				ptr->getItem()->setStatus(DONE);
+				finshed_orders.enqueue(ptr->getItem());
+				ptr = ptr->getNext();
+				nor_service.remove(count);
+			}
+			else
+			{
+				ptr = ptr->getNext();
+				count++;
+			}
 		}
 
 	}
@@ -385,7 +434,7 @@ void Restaurant:: WaitOrders_Handling ()
 	Order* pord;
 	for(int i=1; i<=N_order.getlength() ; i++)
 	{
-		N_order.remove(i,pord);
+		N_order.remove(i);
 		pGUI->AddToDrawingList(pord);
 		N_order.insert(i,pord);
 	}
@@ -447,7 +496,11 @@ void Restaurant:: AddTo_Service ()
 		if(ptr)
 		{
 			ptr->setState(true);
-			N_order.remove(1,Pord);
+//<<<<<<< Updated upstream
+			N_order.remove(1);
+//=======
+			N_order.remove(N_order.getlength());
+//>>>>>>> Stashed changes
 			Pord->set_remainDishes(Pord->GetSize());
 			Pord->set_cook(ptr);
 			nor_service.insert(nor_service.getlength()+1,Pord);
@@ -557,6 +610,7 @@ Cook* Restaurant:: find_availableCook(ORD_TYPE typ)
 
 Cook* Restaurant::findInRest_OrInBreak()
 {
+//<<<<<<< Updated upstream
 	Cook* cook=nullptr;
 	Node<Cook*>* ptr=Vip_Cook.getHead();
 	while(ptr)
@@ -586,6 +640,9 @@ Cook* Restaurant::findInRest_OrInBreak()
 			ptr=ptr->getNext();
 	}
 	return cook;
+//=======
+	return nullptr;
+//>>>>>>> Stashed changes
 }
 
 void Restaurant::UrgentOrders_Handle()
@@ -641,7 +698,7 @@ void Restaurant:: increment_Wt()
 	Order* pord;
 	for(int i=1 ; i<=N_order.getlength() ; i++)
 	{
-		N_order.remove(i,pord);
+		N_order.remove(i);
 		pord->set_WaitTime(ptr[i]->get_WaitTime()+1);
 		N_order.insert(i,pord);
 	}
@@ -655,7 +712,7 @@ void Restaurant:: AutoPromotion_handling()
 	Order* pord;
 	while(!N_order.isEmpty())
 	{
-		N_order.remove(1,pord);
+		N_order.remove(1);
 		if(pord->get_WaitTime() > AutoP)
 		{
 			pord->setOrder_Typ(TYPE_VIP);

@@ -13,7 +13,7 @@ public:
 	int getlength();
 	Node<T>* getHead();
 	bool insert(int pos,T Item);
-	bool remove(int pos , T &entry);
+	bool remove(int pos);
 	void clear();
 	bool replace(int pos, T Item);
 	int get_index(T &Item);
@@ -89,7 +89,7 @@ inline bool List<T>::insert(int pos, T Item)
 }
 
 template<typename T>
-inline bool List<T>::remove(int pos , T &entry)
+inline bool List<T>::remove(int pos)
 {
 	bool ableToRemove = (pos >= 1) && (pos <= itemcount);
 	if (ableToRemove) {
@@ -109,7 +109,6 @@ inline bool List<T>::remove(int pos , T &entry)
 			ptr = prev->getNext();
 			prev->setNext(ptr->getNext());
 		}
-		entry=ptr->getItem();
 		delete ptr;
 		ptr = nullptr;
 		itemcount--;
