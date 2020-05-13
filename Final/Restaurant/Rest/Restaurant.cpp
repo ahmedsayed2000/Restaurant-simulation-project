@@ -351,8 +351,7 @@ void Restaurant:: interactive_mode()
 {
 
 	int CurrentTimeStep=1;
-	//while (!EventsQueue.isEmpty()|| !vip_service.isEmpty() || !veg_service.isEmpty() || !nor_service.isEmpty())
-	while(!EventsQueue.isEmpty() || !N_order.isEmpty() || !vip_order.isEmpty())
+	while (!EventsQueue.isEmpty()|| !vip_service.isEmpty() || !veg_service.isEmpty() || !nor_service.isEmpty())
 	{
 		//print current timestep
 		char timestep[10];
@@ -366,28 +365,26 @@ void Restaurant:: interactive_mode()
 		pGUI->waitForClick();
 		CurrentTimeStep++;
 	}
-	pGUI->waitForClick();
 
-	/*//<<<<<<< Updated upstream
+	//<<<<<<< Updated upstream
 	WaitOrders_Handling();
 
 	///////////////////////////////////////Service Stage///////////////////////////////////////////////////////////////
 	Node<Order*>* ptr = vip_service.getHead();
 	Cook* cook;
 	while (ptr) {
-	cook = (ptr->getItem())->getCook();
-	ptr->getItem()->set_ServiceTime(ptr->getItem()->get_ServiceTime() + 1);
-	(ptr->getItem())->set_remainDishes((ptr->getItem()) ->get_remainDishes()-cook->getSpeed());
-	if ((ptr->getItem())->get_remainDishes() <= 0) {
-	cook->set_OrdersPrepared(cook->get_OrdersPrepared() + 1);
-	cook->setState(false);
+		cook = (ptr->getItem())->getCook();
+		ptr->getItem()->set_ServiceTime(ptr->getItem()->get_ServiceTime() + 1);
+		(ptr->getItem())->set_remainDishes((ptr->getItem()) ->get_remainDishes()-cook->getSpeed());
+		if ((ptr->getItem())->get_remainDishes() <= 0) {
+			cook->set_OrdersPrepared(cook->get_OrdersPrepared() + 1);
+			cook->setState(false);
 
-	//delete from list
-	}
-	ptr = ptr->getNext();
+			//delete from list
+		}
+		ptr = ptr->getNext();
 	}
 
-	}*/
 
 }
 
@@ -396,11 +393,11 @@ void Restaurant:: WaitOrders_Handling ()
 	AddTo_Service();
 	increment_Wt();
 
-	//pGUI->ResetDrawingList();
+	pGUI->ResetDrawingList();
 
 
 
-	/*int count;
+	int count;
 	Order** ptr=vip_order.toArray(count);
 	for(int i=0 ; i<count ; i++)
 		pGUI->AddToDrawingList(ptr[i]);
@@ -417,7 +414,7 @@ void Restaurant:: WaitOrders_Handling ()
 		N_order.remove(i,pord);
 		pGUI->AddToDrawingList(pord);
 		N_order.insert(i,pord);
-	}*/
+	}
 }
 
 void Restaurant:: AddTo_Service ()
