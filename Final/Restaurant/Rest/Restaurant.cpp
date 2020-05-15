@@ -59,34 +59,24 @@ void Restaurant::FillDrawingList()
 	//This function should be implemented in phase1
 	//It should add ALL orders and Cooks to the drawing list
 	//It should get orders from orders lists/queues/stacks/whatever (same for Cooks)
-	pGUI = new GUI;
-	Load();
-	Node<Cook*>* ptr = N_Cook.getHead();
-	while (ptr)
-	{
-		pGUI->AddToDrawingList(ptr->getItem());
-		ptr = ptr->getNext();
-	}
 
-
-	pGUI->UpdateInterface();
-	pGUI->waitForClick();
-	ExecuteEvents(1);
-	Order* pord;
-	int x = N_order.getlength();
-	for (int i = 1; i <= x; i++)
-	{
-		N_order.remove(1, pord);
-		pGUI->AddToDrawingList(pord);
-	}
-	pGUI->UpdateInterface();
-	pGUI->waitForClick();
-	AddTo_Service();
 	pGUI->ResetDrawingList();
-	pGUI->UpdateInterface();
-	pGUI->waitForClick();
-	/*ExecuteEvents(2);
-	AddTo_Service();*/
+	int count;
+	Order* pord;
+	Order** ptr=vip_order.toArray(count);
+	for(int i=0 ; i<count ; i++)
+		pGUI->AddToDrawingList(ptr[i]);
+
+	ptr=vegan_order.toArray(count);
+	for(int i=0 ; i<count ; i++)
+		pGUI->AddToDrawingList(ptr[i]);
+
+	for(int i=1 ; i<=N_order.getlength() ; i++)
+	{
+		N_order.remove(i,pord);
+		pGUI->AddToDrawingList(pord);
+		N_order.insert(i,pord);
+	}
 
 	//To add orders it should call function  void GUI::AddToDrawingList(Order* pOrd);
 
@@ -303,7 +293,7 @@ void Restaurant:: Load()
 		{
 		case'R': 
 			{
-				infile>>ord_type>>time>>id>>size>>money;
+				infile>>ord_type>>id>>time>>size>>money;
 				if(ord_type=='N')
 				{
 					typ=TYPE_NRM;
@@ -324,14 +314,14 @@ void Restaurant:: Load()
 
 		case'X':
 			{
-				infile>>time>>id;
+				infile>>id>>time;
 				ArrEv = new CancelEvent(time, id);
 			}
 			break;
 
 		case'P':
 			{
-				infile>>time>>id>>money;
+				infile>>id>>time>>money;
 				ArrEv = new PromoteEvent(time, id, money);
 
 			}
@@ -360,72 +350,72 @@ void Restaurant:: interactive_mode()
 		pGUI->UpdateInterface();
 		pGUI->waitForClick();
 		CurrentTimeStep++;
-		
+
 		///////////////////////////////////////Service Stage///////////////////////////////////////////////////////////////
-		ofstream myfile;
+		/*ofstream myfile;
 		Node<Order*>* ptr = vip_service.getHead();
 		Order * ord;
 		Cook* cook;
 		int count = 1;
 		while (ptr) {
-			cook = (ptr->getItem())->getCook();
-			ptr->getItem()->set_ServiceTime(ptr->getItem()->get_ServiceTime() + 1);
-			(ptr->getItem())->set_remainDishes((ptr->getItem()) ->get_remainDishes()-cook->getSpeed());
-			if ((ptr->getItem())->get_remainDishes() <= 0) {
-				cook->set_OrdersPrepared(cook->get_OrdersPrepared() + 1);
-				cook->setState(false);
-				ptr->getItem()->setStatus(DONE);
-				finshed_orders.enqueue(ptr->getItem());
-				ptr = ptr->getNext();
-				vip_service.remove(count,ord);
-			}
-			else
-			{
-				ptr = ptr->getNext();
-				count++;
-			}
+		cook = (ptr->getItem())->getCook();
+		ptr->getItem()->set_ServiceTime(ptr->getItem()->get_ServiceTime() + 1);
+		(ptr->getItem())->set_remainDishes((ptr->getItem()) ->get_remainDishes()-cook->getSpeed());
+		if ((ptr->getItem())->get_remainDishes() <= 0) {
+		cook->set_OrdersPrepared(cook->get_OrdersPrepared() + 1);
+		cook->setState(false);
+		ptr->getItem()->setStatus(DONE);
+		finshed_orders.enqueue(ptr->getItem());
+		ptr = ptr->getNext();
+		vip_service.remove(count,ord);
+		}
+		else
+		{
+		ptr = ptr->getNext();
+		count++;
+		}
 		}
 		ptr = veg_service.getHead();
 		count = 1;
 		while (ptr) {
-			cook = (ptr->getItem())->getCook();
-			ptr->getItem()->set_ServiceTime(ptr->getItem()->get_ServiceTime() + 1);
-			(ptr->getItem())->set_remainDishes((ptr->getItem())->get_remainDishes() - cook->getSpeed());
-			if ((ptr->getItem())->get_remainDishes() <= 0) {
-				cook->set_OrdersPrepared(cook->get_OrdersPrepared() + 1);
-				cook->setState(false);
-				ptr->getItem()->setStatus(DONE);
-				finshed_orders.enqueue(ptr->getItem());
-				ptr = ptr->getNext();
-				veg_service.remove(count,ord);
-			}
-			else
-			{
-				ptr = ptr->getNext();
-				count++;
-			}
-			
+		cook = (ptr->getItem())->getCook();
+		ptr->getItem()->set_ServiceTime(ptr->getItem()->get_ServiceTime() + 1);
+		(ptr->getItem())->set_remainDishes((ptr->getItem())->get_remainDishes() - cook->getSpeed());
+		if ((ptr->getItem())->get_remainDishes() <= 0) {
+		cook->set_OrdersPrepared(cook->get_OrdersPrepared() + 1);
+		cook->setState(false);
+		ptr->getItem()->setStatus(DONE);
+		finshed_orders.enqueue(ptr->getItem());
+		ptr = ptr->getNext();
+		veg_service.remove(count,ord);
+		}
+		else
+		{
+		ptr = ptr->getNext();
+		count++;
+		}
+
 		}
 		ptr = nor_service.getHead();
 		count = 1;
 		while (ptr) {
-			cook = (ptr->getItem())->getCook();
-			ptr->getItem()->set_ServiceTime(ptr->getItem()->get_ServiceTime() + 1);
-			(ptr->getItem())->set_remainDishes((ptr->getItem())->get_remainDishes() - cook->getSpeed());
-			if ((ptr->getItem())->get_remainDishes() <= 0) {
-				cook->set_OrdersPrepared(cook->get_OrdersPrepared() + 1);
-				cook->setState(false);
-				ptr->getItem()->setStatus(DONE);
-				finshed_orders.enqueue(ptr->getItem());
-				ptr = ptr->getNext();
-				nor_service.remove(count,ord);
-			}
-			else
-			{
-				ptr = ptr->getNext();
-				count++;
-			}
+		cook = (ptr->getItem())->getCook();
+		ptr->getItem()->set_ServiceTime(ptr->getItem()->get_ServiceTime() + 1);
+		(ptr->getItem())->set_remainDishes((ptr->getItem())->get_remainDishes() - cook->getSpeed());
+		if ((ptr->getItem())->get_remainDishes() <= 0) {
+		cook->set_OrdersPrepared(cook->get_OrdersPrepared() + 1);
+		cook->setState(false);
+		ptr->getItem()->setStatus(DONE);
+		finshed_orders.enqueue(ptr->getItem());
+		ptr = ptr->getNext();
+		nor_service.remove(count,ord);
 		}
+		else
+		{
+		ptr = ptr->getNext();
+		count++;
+		}
+		}*/
 
 	}
 
@@ -435,6 +425,24 @@ void Restaurant::WaitOrders_Handling()
 {
 	AddTo_Service();
 	increment_Wt();
+
+	pGUI->ResetDrawingList();   /// /*
+	int count;
+	Order* pord;
+	Order** ptr=vip_order.toArray(count);
+	for(int i=0 ; i<count ; i++)
+		pGUI->AddToDrawingList(ptr[i]);
+
+	ptr=vegan_order.toArray(count);
+	for(int i=0 ; i<count ; i++)
+		pGUI->AddToDrawingList(ptr[i]);
+
+	for(int i=1 ; i<=N_order.getlength() ; i++)
+	{
+		N_order.remove(i,pord);
+		pGUI->AddToDrawingList(pord);
+		N_order.insert(i,pord);
+	}      /////////// */
 }
 
 
@@ -508,79 +516,79 @@ Cook* Restaurant::find_availableCook(ORD_TYPE typ)
 	switch (typ)
 	{
 	case TYPE_VIP:
-	{
-		ptr = Vip_Cook.getHead();
-		while (ptr)
 		{
-			cook = ptr->getItem();
-			if (!(cook->getState() || cook->is_inBreak() || cook->is_InRest()))
-				return cook;
-			else
-				ptr = ptr->getNext();
-		}
+			ptr = Vip_Cook.getHead();
+			while (ptr)
+			{
+				cook = ptr->getItem();
+				if (!(cook->getState() || cook->is_inBreak() || cook->is_InRest()))
+					return cook;
+				else
+					ptr = ptr->getNext();
+			}
 
-		ptr = N_Cook.getHead();
-		while (ptr)
-		{
-			cook = ptr->getItem();
-			if (!(cook->getState() || cook->is_inBreak() || cook->is_InRest()))
-				return cook;
-			else
-				ptr = ptr->getNext();
-		}
+			ptr = N_Cook.getHead();
+			while (ptr)
+			{
+				cook = ptr->getItem();
+				if (!(cook->getState() || cook->is_inBreak() || cook->is_InRest()))
+					return cook;
+				else
+					ptr = ptr->getNext();
+			}
 
-		ptr = Veg_Cook.getHead();
-		while (ptr)
-		{
-			cook = ptr->getItem();
-			if (!(cook->getState() || cook->is_inBreak() || cook->is_InRest()))
-				return cook;
-			else
-				ptr = ptr->getNext();
+			ptr = Veg_Cook.getHead();
+			while (ptr)
+			{
+				cook = ptr->getItem();
+				if (!(cook->getState() || cook->is_inBreak() || cook->is_InRest()))
+					return cook;
+				else
+					ptr = ptr->getNext();
+			}
+			return nullptr;
 		}
-		return nullptr;
-	}
-	break;
+		break;
 
 	case TYPE_VGAN:
-	{
-		ptr = Veg_Cook.getHead();
-		while (ptr)
 		{
-			cook = ptr->getItem();
-			if (!(cook->getState() || cook->is_inBreak() || cook->is_InRest()))
-				return cook;
-			else
-				ptr = ptr->getNext();
+			ptr = Veg_Cook.getHead();
+			while (ptr)
+			{
+				cook = ptr->getItem();
+				if (!(cook->getState() || cook->is_inBreak() || cook->is_InRest()))
+					return cook;
+				else
+					ptr = ptr->getNext();
+			}
+			return nullptr;
 		}
-		return nullptr;
-	}
-	break;
+		break;
 
 	case TYPE_NRM:
-	{
-		ptr = N_Cook.getHead();
-		while (ptr)
 		{
-			cook = ptr->getItem();
-			if (!(cook->getState() || cook->is_inBreak() || cook->is_InRest()))
-				return cook;
-			else
-				ptr = ptr->getNext();
-		}
+			ptr = N_Cook.getHead();
+			while (ptr)
+			{
+				cook = ptr->getItem();
+				if (!(cook->getState() || cook->is_inBreak() || cook->is_InRest()))
+					return cook;
+				else
+					ptr = ptr->getNext();
+			}
 
-		ptr = Vip_Cook.getHead();
-		while (ptr)
-		{
-			cook = ptr->getItem();
-			if (!(cook->getState() || cook->is_inBreak() || cook->is_InRest()))
-				return cook;
-			else
-				ptr = ptr->getNext();
+			ptr = Vip_Cook.getHead();
+			while (ptr)
+			{
+				cook = ptr->getItem();
+				if (!(cook->getState() || cook->is_inBreak() || cook->is_InRest()))
+					return cook;
+				else
+					ptr = ptr->getNext();
+			}
+			return nullptr;
 		}
-		return nullptr;
-	}
-	break;
+		break;
 
 	default:
 		break;
@@ -648,6 +656,7 @@ void Restaurant::UrgentOrders_Handle()
 				{
 					cook->setState(true);
 					cook->set_inBreak(false);
+					cook->set_inRest(false);
 					vip_order.dequeue(pord);
 					pord->set_cook(cook);
 					pord->set_remainDishes(pord->GetSize());
@@ -697,7 +706,7 @@ void Restaurant::AutoPromotion_handling()
 
 	while (available)
 	{
-		if (N_order.getlength() == 0)
+		if (N_order.isEmpty())
 			return;
 		N_order.remove(1, pord);
 		if (pord->get_WaitTime() > AutoP)
