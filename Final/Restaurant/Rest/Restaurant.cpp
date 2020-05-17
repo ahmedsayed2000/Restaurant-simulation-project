@@ -450,6 +450,11 @@ void Restaurant:: interactive_mode()
 						cookPTR->getItem()->set_inBreak(false);
 					}
 				}
+				if (cookPTR->getItem()->get_OrdersPrepared() == cookPTR->getItem()->get_Break_Orders())
+				{
+					cookPTR->getItem()->set_inBreak(true);
+					cookPTR->getItem()->set_BreakCounter(cookPTR->getItem()->get_Break_duration());
+				}
 			}
 			cookPTR = cookPTR->getNext();
 		}
