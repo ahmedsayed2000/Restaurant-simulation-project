@@ -59,8 +59,28 @@ void Restaurant::FillDrawingList()
 	//This function should be implemented in phase1
 	//It should add ALL orders and Cooks to the drawing list
 	//It should get orders from orders lists/queues/stacks/whatever (same for Cooks)
-
 	pGUI->ResetDrawingList();
+	Node<Cook*>* CTD = N_Cook.getHead(); // CTD -->Cook To Draw
+	while (CTD)
+	{
+		pGUI->AddToDrawingList(CTD->getItem());
+		CTD = CTD->getNext();
+	}
+
+	CTD = Vip_Cook.getHead();
+	while (CTD)
+	{
+		pGUI->AddToDrawingList(CTD->getItem());
+		CTD = CTD->getNext();
+	}
+
+	CTD = Veg_Cook.getHead();
+	while (CTD)
+	{
+		pGUI->AddToDrawingList(CTD->getItem());
+		CTD = CTD->getNext();
+	}
+
 	int count;
 	Order* pord;
 	Order** ptr=vip_order.toArray(count);
@@ -78,6 +98,16 @@ void Restaurant::FillDrawingList()
 		N_order.insert(i,pord);
 	}
 
+	for (int i = 1; i <= service.getlength(); i++)
+	{
+		service.remove(i, pord);
+		pGUI->AddToDrawingList(pord);
+		service.insert(i, pord);
+	}
+
+	ptr = finshed_orders.toArray(count);
+	for (int i = 0; i<count; i++)
+		pGUI->AddToDrawingList(ptr[i]);
 	//To add orders it should call function  void GUI::AddToDrawingList(Order* pOrd);
 
 }
@@ -336,8 +366,9 @@ void Restaurant:: Load()
 
 void Restaurant:: interactive_mode()
 {
+	ofstream myfile("output.txt");
 	int CurrentTimeStep = 1;
-	while (!EventsQueue.isEmpty()|| !vip_service.isEmpty() || !veg_service.isEmpty() || !nor_service.isEmpty())
+	while (!EventsQueue.isEmpty()|| !service.isEmpty())
 	{
 		//print current timestep
 		char timestep[10];
@@ -347,77 +378,91 @@ void Restaurant:: interactive_mode()
 		ExecuteEvents(CurrentTimeStep);
 
 		WaitOrders_Handling();
+		///////////////////////////service/////////////////////////////////////////////
+		Node<Order*>* ptr = service.getHead();
+		Order * ord;
+		Cook* cook;
+		int count = 1;
+		while (ptr)
+		{
+			cook = (ptr->getItem())->getCook();
+			ptr->getItem()->set_ServiceTime(ptr->getItem()->get_ServiceTime() + 1);
+			(ptr->getItem())->set_remainDishes((ptr->getItem())->get_remainDishes() - cook->getSpeed());
+			if ((ptr->getItem())->get_remainDishes() <= 0) {
+				cook->set_OrdersPrepared(cook->get_OrdersPrepared() + 1);
+				cook->setState(false);
+				ptr->getItem()->setStatus(DONE);
+				ptr = ptr->getNext();
+				service.remove(count, ord);
+				finshed_orders.enqueue(ord);
+				myfile << ord->get_FinishTime() << " " << ord->GetID() << " " << ord->get_ArrTime() << " " << ord->get_WaitTime() << " " << ord->get_FinishTime() - ord->get_ArrTime() << endl;
+
+			}
+			else
+			{
+				ptr = ptr->getNext();
+				count++;
+			}
+		}
+		//////////////////////////////injury//////////////////////////////////////////////
+		srand(time(NULL));
+		float injProp = rand() % 15 + 1;
+		if (injProp <= injprob) 
+		{
+			ptr = service.getHead();
+			while (true)
+			{
+				cook = ptr->getItem()->getCook();
+				if (cook->getInjury() == false)
+				{
+					cook->setInjury(true);
+					cook->setSpeed(cook->getSpeed()/2);
+					cook->set_OutTime(rstprd);
+					break;
+				}
+				else
+				{
+					ptr = ptr->getNext();
+				}
+
+			}
+		}
+		////////////////////////////////cook//////////////////////////////////////////////
+		Node<Cook*>* cookPTR = Vip_Cook.getHead();
+		while (cookPTR)
+		{
+			if (cookPTR->getItem()->getState() == false) 
+			{
+				if (cookPTR->getItem()->getInjury() && cookPTR->getItem() ->is_InRest())
+				{
+					cookPTR->getItem()->set_OutTime(cookPTR->getItem()->get_OutTime() - 1);
+					if (cookPTR->getItem()->get_OutTime() == 0)
+					{
+						cookPTR->getItem()->setInjury(false);
+						cookPTR->getItem()->set_inRest(false);
+					}
+				}
+				if (cookPTR->getItem()->is_inBreak()) 
+				{
+					cookPTR->getItem()->set_BreakCounter(cookPTR->getItem()->get_BreakCounter() - 1);
+					if (cookPTR->getItem()->get_BreakCounter()==0)
+					{
+						cookPTR->getItem()->set_inBreak(false);
+					}
+				}
+			}
+			cookPTR = cookPTR->getNext();
+		}
+		//////////////////////////////////////////////////////////////////////////////////
+		FillDrawingList();
 		pGUI->UpdateInterface();
 		pGUI->waitForClick();
 		CurrentTimeStep++;
 
-		///////////////////////////////////////Service Stage///////////////////////////////////////////////////////////////
-		/*ofstream myfile;
-		Node<Order*>* ptr = vip_service.getHead();
-		Order * ord;
-		Cook* cook;
-		int count = 1;
-		while (ptr) {
-		cook = (ptr->getItem())->getCook();
-		ptr->getItem()->set_ServiceTime(ptr->getItem()->get_ServiceTime() + 1);
-		(ptr->getItem())->set_remainDishes((ptr->getItem()) ->get_remainDishes()-cook->getSpeed());
-		if ((ptr->getItem())->get_remainDishes() <= 0) {
-		cook->set_OrdersPrepared(cook->get_OrdersPrepared() + 1);
-		cook->setState(false);
-		ptr->getItem()->setStatus(DONE);
-		finshed_orders.enqueue(ptr->getItem());
-		ptr = ptr->getNext();
-		vip_service.remove(count,ord);
-		}
-		else
-		{
-		ptr = ptr->getNext();
-		count++;
-		}
-		}
-		ptr = veg_service.getHead();
-		count = 1;
-		while (ptr) {
-		cook = (ptr->getItem())->getCook();
-		ptr->getItem()->set_ServiceTime(ptr->getItem()->get_ServiceTime() + 1);
-		(ptr->getItem())->set_remainDishes((ptr->getItem())->get_remainDishes() - cook->getSpeed());
-		if ((ptr->getItem())->get_remainDishes() <= 0) {
-		cook->set_OrdersPrepared(cook->get_OrdersPrepared() + 1);
-		cook->setState(false);
-		ptr->getItem()->setStatus(DONE);
-		finshed_orders.enqueue(ptr->getItem());
-		ptr = ptr->getNext();
-		veg_service.remove(count,ord);
-		}
-		else
-		{
-		ptr = ptr->getNext();
-		count++;
-		}
-
-		}
-		ptr = nor_service.getHead();
-		count = 1;
-		while (ptr) {
-		cook = (ptr->getItem())->getCook();
-		ptr->getItem()->set_ServiceTime(ptr->getItem()->get_ServiceTime() + 1);
-		(ptr->getItem())->set_remainDishes((ptr->getItem())->get_remainDishes() - cook->getSpeed());
-		if ((ptr->getItem())->get_remainDishes() <= 0) {
-		cook->set_OrdersPrepared(cook->get_OrdersPrepared() + 1);
-		cook->setState(false);
-		ptr->getItem()->setStatus(DONE);
-		finshed_orders.enqueue(ptr->getItem());
-		ptr = ptr->getNext();
-		nor_service.remove(count,ord);
-		}
-		else
-		{
-		ptr = ptr->getNext();
-		count++;
-		}
-		}*/
+		
 
 	}
+	myfile.close();
 
 }
 
@@ -425,24 +470,6 @@ void Restaurant::WaitOrders_Handling()
 {
 	AddTo_Service();
 	increment_Wt();
-
-	pGUI->ResetDrawingList();   /// /*
-	int count;
-	Order* pord;
-	Order** ptr=vip_order.toArray(count);
-	for(int i=0 ; i<count ; i++)
-		pGUI->AddToDrawingList(ptr[i]);
-
-	ptr=vegan_order.toArray(count);
-	for(int i=0 ; i<count ; i++)
-		pGUI->AddToDrawingList(ptr[i]);
-
-	for(int i=1 ; i<=N_order.getlength() ; i++)
-	{
-		N_order.remove(i,pord);
-		pGUI->AddToDrawingList(pord);
-		N_order.insert(i,pord);
-	}      /////////// */
 }
 
 
@@ -459,7 +486,8 @@ void Restaurant::AddTo_Service()
 			vip_order.dequeue(Pord);
 			Pord->set_cook(ptr);
 			Pord->set_remainDishes(Pord->GetSize());
-			vip_service.insert(vip_service.getlength() + 1, Pord);
+			Pord->setStatus(SRV);
+			service.insert(service.getlength() + 1, Pord);
 		}
 		else
 		{
@@ -480,7 +508,8 @@ void Restaurant::AddTo_Service()
 			vegan_order.dequeue(Pord);
 			Pord->set_remainDishes(Pord->GetSize());
 			Pord->set_cook(ptr);
-			veg_service.insert(veg_service.getlength() + 1, Pord);
+			Pord->setStatus(SRV);
+			service.insert(service.getlength() + 1, Pord);
 		}
 		else
 			break;
@@ -499,7 +528,8 @@ void Restaurant::AddTo_Service()
 			N_order.remove(1, Pord);
 			Pord->set_remainDishes(Pord->GetSize());
 			Pord->set_cook(ptr);
-			nor_service.insert(nor_service.getlength() + 1, Pord);
+			Pord->setStatus(SRV);
+			service.insert(service.getlength() + 1, Pord);
 		}
 		else
 			available = false;
@@ -647,7 +677,8 @@ void Restaurant::UrgentOrders_Handle()
 				vip_order.dequeue(pord);
 				pord->set_cook(cook);
 				pord->set_remainDishes(pord->GetSize());
-				vip_service.insert(vip_service.getlength() + 1, pord);
+				pord->setStatus(SRV);
+				service.insert(service.getlength() + 1, pord);
 			}
 			else
 			{
@@ -660,7 +691,8 @@ void Restaurant::UrgentOrders_Handle()
 					vip_order.dequeue(pord);
 					pord->set_cook(cook);
 					pord->set_remainDishes(pord->GetSize());
-					vip_service.insert(vip_service.getlength() + 1, pord);
+					pord->setStatus(SRV);
+					service.insert(service.getlength() + 1, pord);
 				}
 				else
 					return;

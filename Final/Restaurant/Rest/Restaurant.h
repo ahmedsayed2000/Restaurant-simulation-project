@@ -22,21 +22,12 @@ private:
 	Queue<Event*> EventsQueue;	//Queue of all events that will be loaded from file
 
 	
-	/// ==> 
 	//	DEMO-related members. Should be removed in phases 1&2
 	Queue<Order*> DEMO_Queue;	//Important: This is just for demo
-	/// ==>
-	
-	
-	
-	//
-	// TODO: Add More Data Members As Needed
-
-
 	
 	float injprob;
-	int rstprd;
-	int AutoP,VIP_wt;							        //AutoPo is the number of steps after which an order is promoted
+	int   rstprd;
+	int   AutoP,VIP_wt;							        //AutoPo is the number of steps after which an order is promoted
 
 	List<Cook*> N_Cook;							// list of Normal cooks
 	List<Cook*> Veg_Cook;						// list of Vegan cooks
@@ -46,9 +37,7 @@ private:
 	PriorityQueue<Order*>    vip_order;				// waiting  vip orders
 	Queue<Order*>		     vegan_order;			// waiting  vegan orders
 
-	List<Order*>        vip_service;			// service  orders 
-	List<Order*>        veg_service;
-	List<Order*>        nor_service;
+	List<Order*>         service;
 
 	Queue<Order*>        finshed_orders;		// finished orders
 public:
@@ -74,7 +63,6 @@ public:
 	
     
 	void interactive_mode();   // interactive mode
-//<<<<<<< Updated upstream
 	/////////////////////// Waiting Handling Section //////////////////////////
 	void WaitOrders_Handling ();      // handling waiting orders every timestep
 
@@ -86,8 +74,5 @@ public:
 	void increment_Wt();
 
 
-//=======
-	
-//>>>>>>> Stashed changes
 };
 

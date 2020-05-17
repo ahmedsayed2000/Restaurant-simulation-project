@@ -13,8 +13,8 @@ class Cook
 	int Orders_Prepared;
 	int OutTime;
 	bool busy;                // busy or not
-	bool injured;              // injured during service
-	bool inBreak;           // whether the cook is in break or not
+	bool injured;             // injured during service
+	bool inBreak;             // whether the cook is in break or not
 	int Break_counter;        // incrementig until the cook finishes his break time
 	bool inRest;
 

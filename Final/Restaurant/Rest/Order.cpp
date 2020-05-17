@@ -5,6 +5,8 @@ Order::Order(int id, ORD_TYPE r_Type)
 	ID = (id>0&&id<1000)?id:0;	//1<ID<999
 	type = r_Type;
 	status = WAIT;
+	WaitTime = 0;    /// added
+	ServTime = 0;
 }
 
 Order:: Order (int id , int time, ORD_TYPE typ , double  money)
@@ -90,7 +92,7 @@ void Order :: set_FinishTime(int tm)
 
 int Order :: get_FinishTime()
 {
-	return FinishTime;
+	return ArrTime+WaitTime+ServTime;
 }
 
 void Order :: setOrder_Typ ( ORD_TYPE tp)
