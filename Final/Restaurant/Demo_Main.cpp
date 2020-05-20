@@ -8,9 +8,5 @@ int main()
 	Restaurant* pRest = new Restaurant;
 	pRest->RunSimulation();
 	delete pRest;
-	
-	
-
-	system("pause");	
 	return 0;
 }

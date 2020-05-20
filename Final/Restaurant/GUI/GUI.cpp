@@ -67,6 +67,12 @@ void GUI::PrintMessage(string msg) const	//Prints a message on status bar
 	pWind->DrawString(10, WindHeight - (int) (StatusBarHeight/1.5), msg); // You may need to change these coordinates later 
 	                                                                      // to be able to write multi-line
 }
+void GUI::PrintMessage(string msg, int line)
+{
+	pWind->SetPen(DARKRED);
+	pWind->SetFont(18, BOLD, BY_NAME, "Arial");
+	pWind->DrawString(10,( WindHeight - (int)(StatusBarHeight / 1.5))+ line*15, msg);
+}
 //////////////////////////////////////////////////////////////////////////////////////////
 void GUI::DrawString(const int iX, const int iY, const string Text)
 {
@@ -269,15 +275,12 @@ void GUI::ResetDrawingList()
 	DrawingItemsCount = 0;
 }
 
- 
-
-
 PROG_MODE	GUI::getGUIMode() const
 {
 	PROG_MODE Mode;
 	do
 	{
-		PrintMessage("Please select GUI mode: (1)Interactive, (2)StepByStep, (3)Silent, (4)DEMO... ");
+		PrintMessage("Please select GUI mode: (1)Interactive, (2)StepByStep, (3)Silent... ");
 		string S = GetString();
 		Mode = (PROG_MODE) (atoi(S.c_str())-1);
 	}

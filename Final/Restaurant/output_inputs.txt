@@ -1,0 +1,8 @@
+4 2 1 0 3
+5 1 1 0 4
+8 4 2 0 6
+12 3 1 0 11
+Orders: 4 [Norm:3, Veg:0, VIP:1]
+cooks:4  [Norm:3, Veg:1, VIP:0]
+Avg Wait = 0, Avg Serv = 4
+Auto-promoted: 0

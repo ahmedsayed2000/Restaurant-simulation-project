@@ -3,7 +3,6 @@
 #include <iostream>
 #include <fstream>
 using namespace std;
-
 #include "Restaurant.h"
 #include "..\Events\ArrivalEvent.h"
 
@@ -11,34 +10,33 @@ using namespace std;
 Restaurant::Restaurant() 
 {
 	pGUI = NULL;
+	AutoPromoted = 0;
+	TotalServed = 0;
 }
 
 void Restaurant::RunSimulation()
 {
-	Load();
 	pGUI = new GUI;
+	Load();
 	PROG_MODE	mode = pGUI->getGUIMode();
 
 	switch (mode)	//Add a function for each mode in next phases
 	{
 	case MODE_INTR:
 		interactive_mode();
+		break;
 	case MODE_STEP:
+		StepByStep_mode();
 		break;
 	case MODE_SLNT:
+		Silent_mode();
 		break;
-	case MODE_DEMO:
+	default:
 		break;
-
 	};
 
 }
 
-
-
-//////////////////////////////////  Event handling functions   /////////////////////////////
-
-//Executes ALL events that should take place at current timestep
 void Restaurant::ExecuteEvents(int CurrentTimeStep)
 {
 	Event *pE;
@@ -193,9 +191,10 @@ void Restaurant:: Load()
 
 	int BO,BN_min,BN_max,BG_min,BG_max,BV_min,BV_max;  // BO is number of orders a cook must prepate before a break
 	// (BN_max/min)/(BG_min/max)/(BV_min/max)  are break duration limits for this type of cook
-
+	pGUI->PrintMessage("please enter the input file name without .txt");
+	FileName = pGUI->GetString();
 	ifstream infile;
-	infile.open("inputs.txt");
+	infile.open(FileName+".txt");
 	//cout<<infile.is_open()<<endl;
 
 	infile>>N>>G>>V;
@@ -353,7 +352,6 @@ void Restaurant:: Load()
 			{
 				infile>>id>>time>>money;
 				ArrEv = new PromoteEvent(time, id, money);
-
 			}
 			break;
 		default:
@@ -366,109 +364,134 @@ void Restaurant:: Load()
 
 void Restaurant:: interactive_mode()
 {
-	ofstream myfile("output.txt");
+	ofstream myfile("output_" + FileName + ".txt");
 	int CurrentTimeStep = 1;
-	while (!EventsQueue.isEmpty()|| !service.isEmpty())
+	while (!EventsQueue.isEmpty() || !service.isEmpty())
 	{
+		assignments = "";
 		//print current timestep
 		char timestep[10];
 		itoa(CurrentTimeStep, timestep, 10);
-		pGUI->PrintMessage(timestep);
 
 		ExecuteEvents(CurrentTimeStep);
 
 		WaitOrders_Handling();
 		///////////////////////////service/////////////////////////////////////////////
-		Node<Order*>* ptr = service.getHead();
-		Order * ord;
-		Cook* cook;
-		int count = 1;
-		while (ptr)
-		{
-			cook = (ptr->getItem())->getCook();
-			ptr->getItem()->set_ServiceTime(ptr->getItem()->get_ServiceTime() + 1);
-			(ptr->getItem())->set_remainDishes((ptr->getItem())->get_remainDishes() - cook->getSpeed());
-			if ((ptr->getItem())->get_remainDishes() <= 0) {
-				cook->set_OrdersPrepared(cook->get_OrdersPrepared() + 1);
-				cook->setState(false);
-				ptr->getItem()->setStatus(DONE);
-				ptr = ptr->getNext();
-				service.remove(count, ord);
-				finshed_orders.enqueue(ord);
-				myfile << ord->get_FinishTime() << " " << ord->GetID() << " " << ord->get_ArrTime() << " " << ord->get_WaitTime() << " " << ord->get_FinishTime() - ord->get_ArrTime() << endl;
-
-			}
-			else
-			{
-				ptr = ptr->getNext();
-				count++;
-			}
-		}
-		//////////////////////////////injury//////////////////////////////////////////////
-		srand(time(NULL));
-		float injProp = rand() % 15 + 1;
-		if (injProp <= injprob) 
-		{
-			ptr = service.getHead();
-			while (true)
-			{
-				cook = ptr->getItem()->getCook();
-				if (cook->getInjury() == false)
-				{
-					cook->setInjury(true);
-					cook->setSpeed(cook->getSpeed()/2);
-					cook->set_OutTime(rstprd);
-					break;
-				}
-				else
-				{
-					ptr = ptr->getNext();
-				}
-
-			}
-		}
+		ServiceOrders_Handling(myfile);
 		////////////////////////////////cook//////////////////////////////////////////////
 		Node<Cook*>* cookPTR = Vip_Cook.getHead();
-		while (cookPTR)
-		{
-			if (cookPTR->getItem()->getState() == false) 
-			{
-				if (cookPTR->getItem()->getInjury() && cookPTR->getItem() ->is_InRest())
-				{
-					cookPTR->getItem()->set_OutTime(cookPTR->getItem()->get_OutTime() - 1);
-					if (cookPTR->getItem()->get_OutTime() == 0)
-					{
-						cookPTR->getItem()->setInjury(false);
-						cookPTR->getItem()->set_inRest(false);
-					}
-				}
-				if (cookPTR->getItem()->is_inBreak()) 
-				{
-					cookPTR->getItem()->set_BreakCounter(cookPTR->getItem()->get_BreakCounter() - 1);
-					if (cookPTR->getItem()->get_BreakCounter()==0)
-					{
-						cookPTR->getItem()->set_inBreak(false);
-					}
-				}
-				if (cookPTR->getItem()->get_OrdersPrepared() == cookPTR->getItem()->get_Break_Orders())
-				{
-					cookPTR->getItem()->set_inBreak(true);
-					cookPTR->getItem()->set_BreakCounter(cookPTR->getItem()->get_Break_duration());
-				}
-			}
-			cookPTR = cookPTR->getNext();
-		}
+		Injury();
+		Cook_Handling(cookPTR, FreeVipCook);
+		cookPTR = Veg_Cook.getHead();
+		Cook_Handling(cookPTR, FreeVegCook);
+		cookPTR = N_Cook.getHead();
+		Cook_Handling(cookPTR, FreeNorCook);
 		//////////////////////////////////////////////////////////////////////////////////
 		FillDrawingList();
 		pGUI->UpdateInterface();
+		status_info(timestep);
 		pGUI->waitForClick();
-		CurrentTimeStep++;
-
-		
-
+		CurrentTimeStep++; 
 	}
+	OutputFileFinishing(myfile);
 	myfile.close();
+}
 
+void Restaurant::StepByStep_mode()
+{
+	ofstream myfile("output_" + FileName + ".txt");
+	int CurrentTimeStep = 1;
+	while (!EventsQueue.isEmpty() || !service.isEmpty())
+	{
+		//print current timestep
+		char timestep[10];
+		itoa(CurrentTimeStep, timestep, 10);
+
+		ExecuteEvents(CurrentTimeStep);
+
+		WaitOrders_Handling();
+		///////////////////////////service/////////////////////////////////////////////
+		ServiceOrders_Handling(myfile);
+		////////////////////////////////cook//////////////////////////////////////////////
+		Node<Cook*>* cookPTR = Vip_Cook.getHead();
+		Injury();
+		Cook_Handling(cookPTR, FreeVipCook);
+		cookPTR = Veg_Cook.getHead();
+		Cook_Handling(cookPTR, FreeVegCook);
+		cookPTR = N_Cook.getHead();
+		Cook_Handling(cookPTR, FreeNorCook);
+		//////////////////////////////////////////////////////////////////////////////////
+		FillDrawingList();
+		pGUI->UpdateInterface();
+		status_info(timestep);
+		Sleep(1000);
+		CurrentTimeStep++;
+	}
+	OutputFileFinishing(myfile);
+	myfile.close();
+}
+
+void Restaurant::Silent_mode()
+{
+	ofstream myfile("output_" + FileName + ".txt");
+	int CurrentTimeStep = 1;
+	while (!EventsQueue.isEmpty() || !service.isEmpty())
+	{
+		//print current timestep
+		char timestep[10];
+		itoa(CurrentTimeStep, timestep, 10);
+
+		ExecuteEvents(CurrentTimeStep);
+
+		WaitOrders_Handling();
+		///////////////////////////service/////////////////////////////////////////////
+		ServiceOrders_Handling(myfile);
+		////////////////////////////////cook//////////////////////////////////////////////
+		Node<Cook*>* cookPTR = Vip_Cook.getHead();
+		Injury();
+		Cook_Handling(cookPTR, FreeVipCook);
+		cookPTR = Veg_Cook.getHead();
+		Cook_Handling(cookPTR, FreeVegCook);
+		cookPTR = N_Cook.getHead();
+		Cook_Handling(cookPTR, FreeNorCook);
+		//////////////////////////////////////////////////////////////////////////////////
+		CurrentTimeStep++;
+	}
+	OutputFileFinishing(myfile);
+	myfile.close();
+}
+
+void Restaurant::OutputFileFinishing(ofstream & myfile)
+{
+	int count, NormCount = 0, VegCount = 0, VipCount = 0;
+	float AvgWait = 0, AvgServ = 0;
+	Order** ptr;
+	ptr = finshed_orders.toArray(count);
+	for (int i = 0; i < count; i++)
+	{
+		if (ptr[i]->GetType() == TYPE_NRM)NormCount++;
+		else if (ptr[i]->GetType() == TYPE_VGAN)VegCount++;
+		else VipCount++;
+		AvgWait += ptr[i]->get_WaitTime() / count;
+		AvgServ += ptr[i]->get_ServiceTime() / count;
+	}
+	myfile << "Orders: " << count << " [Norm:" << NormCount << ", Veg:" << VegCount << ", VIP:" << VipCount << "]" << endl;
+	myfile << "cooks:" << Vip_Cook.getlength() + Veg_Cook.getlength() + N_Cook.getlength() << "  [Norm:" << N_Cook.getlength() << ", Veg:" << Veg_Cook.getlength() << ", VIP:" << Vip_Cook.getlength() << "]" << endl;
+	myfile << "Avg Wait = " << AvgWait << ", Avg Serv = " << AvgServ << endl;
+	myfile << "Auto-promoted: " << AutoPromoted;
+}
+
+void Restaurant::status_info(char timestep[])
+{
+	int VipCount,VegCount;
+	Order** ptr = vip_order.toArray(VipCount);
+	ptr = vegan_order.toArray(VegCount);
+
+	pGUI->PrintMessage(timestep);
+	pGUI->PrintMessage("Norm. wait:" + to_string(N_order.getlength())+", Vip wait:"+to_string(VipCount)+"Veg. wait:"+to_string(VegCount), 1);
+	pGUI->PrintMessage("Free normal cooks:"+to_string(FreeNorCook)+", Free vip cooks:"+to_string(FreeVipCook)+", Free vegan cooks:"+to_string(FreeVegCook), 2);
+	pGUI->PrintMessage(assignments, 3);
+	pGUI->PrintMessage("Total orders served:" + to_string(TotalServed), 4);
 }
 
 void Restaurant::WaitOrders_Handling()
@@ -476,7 +499,6 @@ void Restaurant::WaitOrders_Handling()
 	AddTo_Service();
 	increment_Wt();
 }
-
 
 void Restaurant::AddTo_Service()
 {
@@ -493,6 +515,9 @@ void Restaurant::AddTo_Service()
 			Pord->set_remainDishes(Pord->GetSize());
 			Pord->setStatus(SRV);
 			service.insert(service.getlength() + 1, Pord);
+			if (ptr->GetType() == TYPE_VIP) assignments += "V" + to_string(ptr->GetID()) + "(" + to_string(Pord->GetID()) + ")   ";
+			else if (ptr->GetType() == TYPE_NRM) assignments += "N" + to_string(ptr->GetID()) + "(" + to_string(Pord->GetID()) + ")   ";
+			else assignments += "G" + to_string(ptr->GetID()) + "(" + to_string(Pord->GetID()) + ")   ";
 		}
 		else
 		{
@@ -515,6 +540,7 @@ void Restaurant::AddTo_Service()
 			Pord->set_cook(ptr);
 			Pord->setStatus(SRV);
 			service.insert(service.getlength() + 1, Pord);
+			assignments += "G" + to_string(ptr->GetID()) + "(" + to_string(Pord->GetID()) + ")   ";
 		}
 		else
 			break;
@@ -535,6 +561,8 @@ void Restaurant::AddTo_Service()
 			Pord->set_cook(ptr);
 			Pord->setStatus(SRV);
 			service.insert(service.getlength() + 1, Pord);
+			if (ptr->GetType() == TYPE_VIP) assignments += "V" + to_string(ptr->GetID()) + "(" + to_string(Pord->GetID()) + ")   ";
+			else if (ptr->GetType() == TYPE_NRM) assignments += "N" + to_string(ptr->GetID()) + "(" + to_string(Pord->GetID()) + ")   ";
 		}
 		else
 			available = false;
@@ -543,6 +571,7 @@ void Restaurant::AddTo_Service()
 	AutoPromotion_handling();
 
 }
+
 Cook* Restaurant::find_availableCook(ORD_TYPE typ)
 {
 	Node<Cook*>* ptr;
@@ -684,6 +713,9 @@ void Restaurant::UrgentOrders_Handle()
 				pord->set_remainDishes(pord->GetSize());
 				pord->setStatus(SRV);
 				service.insert(service.getlength() + 1, pord);
+				if (cook->GetType() == TYPE_VIP) assignments += "V" + to_string(cook->GetID()) + "(" + to_string(pord->GetID()) + ")   ";
+				else if (cook->GetType() == TYPE_NRM) assignments += "N" + to_string(cook->GetID()) + "(" + to_string(pord->GetID()) + ")   ";
+				else assignments += "G" + to_string(cook->GetID()) + "(" + to_string(pord->GetID()) + ")   ";
 			}
 			else
 			{
@@ -698,6 +730,9 @@ void Restaurant::UrgentOrders_Handle()
 					pord->set_remainDishes(pord->GetSize());
 					pord->setStatus(SRV);
 					service.insert(service.getlength() + 1, pord);
+					if (cook->GetType() == TYPE_VIP) assignments += "V" + to_string(cook->GetID()) + "(" + to_string(pord->GetID()) + ")   ";
+					else if (cook->GetType() == TYPE_NRM) assignments += "N" + to_string(cook->GetID()) + "(" + to_string(pord->GetID()) + ")   ";
+					else assignments += "G" + to_string(cook->GetID()) + "(" + to_string(pord->GetID()) + ")   ";
 				}
 				else
 					return;
@@ -735,6 +770,100 @@ void Restaurant::increment_Wt()
 
 }
 
+void Restaurant::ServiceOrders_Handling(ofstream &myfile)
+{
+	Node<Order*>* ptr = service.getHead();
+	Order * ord;
+	Cook* cook;
+	int count = 1;
+	while (ptr)
+	{
+		cook = (ptr->getItem())->getCook();
+		ptr->getItem()->set_ServiceTime(ptr->getItem()->get_ServiceTime() + 1);
+		(ptr->getItem())->set_remainDishes((ptr->getItem())->get_remainDishes() - cook->getSpeed());
+		if ((ptr->getItem())->get_remainDishes() <= 0) {
+			cook->set_OrdersPrepared(cook->get_OrdersPrepared() + 1);
+			cook->setState(false);
+			ptr->getItem()->setStatus(DONE);
+			ptr = ptr->getNext();
+			service.remove(count, ord);
+			finshed_orders.enqueue(ord);
+			myfile << ord->get_FinishTime() << " " << ord->GetID() << " " << ord->get_ArrTime() << " " << ord->get_WaitTime() << " " << ord->get_FinishTime() - ord->get_ArrTime() << endl;
+			TotalServed++;
+		}
+		else
+		{
+			ptr = ptr->getNext();
+			count++;
+		}
+	}
+}
+
+void Restaurant::Injury()
+{
+	Cook* cook;
+	Node<Order*>* ptr = service.getHead();
+	srand(time(NULL));
+	float injProp = rand() % 15 + 1;
+	if (injProp <= injprob)
+	{
+		ptr = service.getHead();
+		while (true)
+		{
+			cook = ptr->getItem()->getCook();
+			if (cook->getInjury() == false)
+			{
+				cook->setInjury(true);
+				cook->setSpeed(cook->getSpeed() / 2);
+				cook->set_OutTime(rstprd);
+				break;
+			}
+			else
+			{
+				ptr = ptr->getNext();
+			}
+
+		}
+	}
+}
+
+void Restaurant::Cook_Handling(Node<Cook*>* &cookPTR, int &CookNum)
+{
+	CookNum = 0;
+	while (cookPTR)
+	{
+		if (cookPTR->getItem()->getState() == false)
+		{
+			if (cookPTR->getItem()->getInjury() && cookPTR->getItem()->is_InRest())
+			{
+				cookPTR->getItem()->set_OutTime(cookPTR->getItem()->get_OutTime() - 1);
+				if (cookPTR->getItem()->get_OutTime() == 0)
+				{
+					cookPTR->getItem()->setInjury(false);
+					cookPTR->getItem()->set_inRest(false);
+				}
+			}
+			if (cookPTR->getItem()->is_inBreak())
+			{
+				cookPTR->getItem()->set_BreakCounter(cookPTR->getItem()->get_BreakCounter() - 1);
+				if (cookPTR->getItem()->get_BreakCounter() == 0)
+				{
+					cookPTR->getItem()->set_inBreak(false);
+				}
+			}
+			if (cookPTR->getItem()->get_OrdersPrepared() == cookPTR->getItem()->get_Break_Orders())
+			{
+				cookPTR->getItem()->set_inBreak(true);
+				cookPTR->getItem()->set_BreakCounter(cookPTR->getItem()->get_Break_duration());
+			}
+			if (!cookPTR->getItem()->is_inBreak() && !cookPTR->getItem()->is_InRest())
+			{
+				CookNum++;
+			}
+		}
+		cookPTR = cookPTR->getNext();
+	}
+}
 
 void Restaurant::AutoPromotion_handling()
 {
@@ -750,6 +879,7 @@ void Restaurant::AutoPromotion_handling()
 		{
 			pord->setOrder_Typ(TYPE_VIP);
 			vip_order.enqueue(pord, pord->getMoney());
+			AutoPromoted++;
 		}
 		else
 		{
@@ -758,7 +888,6 @@ void Restaurant::AutoPromotion_handling()
 		}
 	}
 }
-
 
 Restaurant::~Restaurant()
 {
