@@ -1,0 +1,11 @@
+5 9 2 0 3
+9 9 3 0 6
+11 19 5 0 6
+15 12 4 0 11
+15 25 6 0 9
+16 7 1 0 15
+37 27 7 0 30
+Orders: 7 [Norm:2, Veg:2, VIP:3]
+cooks:21  [Norm:10, Veg:6, VIP:5]
+Avg Wait = 0, Avg Serv = 11.4286
+Auto-promoted: 0

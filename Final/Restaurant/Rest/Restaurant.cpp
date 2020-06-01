@@ -472,8 +472,8 @@ void Restaurant::OutputFileFinishing(ofstream & myfile)
 		if (ptr[i]->GetType() == TYPE_NRM)NormCount++;
 		else if (ptr[i]->GetType() == TYPE_VGAN)VegCount++;
 		else VipCount++;
-		AvgWait += ptr[i]->get_WaitTime() / count;
-		AvgServ += ptr[i]->get_ServiceTime() / count;
+		AvgWait += ptr[i]->get_WaitTime() /(float) count;
+		AvgServ += ptr[i]->get_ServiceTime() /(float) count;
 	}
 	myfile << "Orders: " << count << " [Norm:" << NormCount << ", Veg:" << VegCount << ", VIP:" << VipCount << "]" << endl;
 	myfile << "cooks:" << Vip_Cook.getlength() + Veg_Cook.getlength() + N_Cook.getlength() << "  [Norm:" << N_Cook.getlength() << ", Veg:" << Veg_Cook.getlength() << ", VIP:" << Vip_Cook.getlength() << "]" << endl;
